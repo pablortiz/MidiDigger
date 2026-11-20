@@ -1,0 +1,7 @@
+node_modules/
+*.lunaaddon
+*.mdig
+*.map
+*.pem
+json/
+mdig/

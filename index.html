@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MIDI Digger</title>
+  <!-- Built by npm run build from src/: dist/main-88dfbfbe01.css and dist/main-88dfbfbe01.js (one classic script,
+       never type="module": Windows loads add-ons from file://). -->
+  <link rel="stylesheet" href="dist/main-88dfbfbe01.css">
+</head>
+<body>
+  <!-- Shown while the library is read or the folder listed (main.js working): over everything, so no button is pressed meanwhile. -->
+  <div id="busy" role="status" aria-live="polite"><div class="busy-box"><span class="busy-spin"></span><span id="busyText">Loading the library…</span></div></div>
+  <dialog id="midiAccessDlg" class="help-dlg midi-access-dlg" aria-labelledby="midiAccessTitle">
+    <h3 id="midiAccessTitle">MIDI library access</h3>
+    <p>Reconnect access to your MIDI library so MIDI Digger can read and play its files.</p>
+    <p id="midiAccessRoot"></p>
+    <p id="midiAccessError" role="alert" hidden></p>
+    <div class="midi-access-actions">
+      <button id="midiAccessLater">Later</button>
+      <button id="midiAccessReconnect" class="primary">Reconnect MIDI access…</button>
+    </div>
+  </dialog>
+  <!-- The licence (src/licence.js): the loops' trial (TRIAL_DAYS), a key to unlock them, Buy. -->
+  <dialog id="licenceDlg" class="help-dlg licence-dlg" aria-labelledby="licenceTitle">
+    <h3 id="licenceTitle">MIDI Digger licence</h3>
+    <p id="licenceText"></p>
+    <p class="dim">Files, Parts, Favorites and sending parts to LUNA are always free. The licence unlocks the loops: New loop, Fill, Arrange and Summary.</p>
+    <div id="licenceEnter" class="licence-enter">
+      <input id="licenceKey" type="text" spellcheck="false" autocomplete="off" placeholder="Licence key from your purchase email" aria-label="Licence key">
+      <button id="licenceActivate" class="primary">Activate</button>
+    </div>
+    <p id="licenceError" role="alert" hidden></p>
+    <div class="midi-access-actions">
+      <button id="licenceRemove" hidden title="Take the licence off this computer (the key can be entered again later, here or on another of your computers)">Remove from this computer</button>
+      <button id="licenceBuy">Buy…</button>
+      <button id="licenceClose">Close</button>
+    </div>
+  </dialog>
+  <header>
+    <div id="headerTools" class="header-tools library-toolbar" role="toolbar" aria-label="Playback and library">
+      <div class="card" id="listen" role="group" aria-label="Listen">
+        <div class="card-row">
+          <span class="field-label">Sound</span>
+          <select id="soundSrc" class="grow" title="What the preview sounds with: a soundfont, the simple synth, or a LUNA track with its instrument"></select><button id="sf2Choose" title="Choose another soundfont (.sf2, .sf3 or .dls)">…</button>
+        </div>
+      </div>
+      <div id="transportDock" class="transport-dock">
+        <div id="transportControls" class="transport-controls" role="group" aria-label="Playback controls">
+          <span id="time" class="tb-lcd">0:00 / 0:00</span>
+          <!-- The tempo the preview plays at now, and LUNA's when it is not the same. -->
+          <span id="bpm" class="tb-lcd tb-bpm">– BPM</span>
+          <!-- The meter where the playhead is (New loop: the loop's). -->
+          <span id="meter" class="tb-lcd tb-meter">–</span>
+          <button id="undo" class="big-icon tl-undo" type="button" disabled aria-label="Undo" title="Undo the last change to the loop (parts dropped, Import, Arrange, Fill, the pads, rows, tempo, meter, key, length, mute, solo, volume). Click again to go further back. (Ctrl+Z)"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3 2 6l3 3"/><path d="M2 6h7.5a4 4 0 0 1 0 8H7"/></svg></button>
+          <button id="redo" class="big-icon tl-redo" type="button" disabled aria-label="Redo" title="Redo the last undone change to the loop (Ctrl+Y or Ctrl+Shift+Z)"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3l3 3-3 3"/><path d="M14 6H6.5a4 4 0 0 0 0 8H9"/></svg></button>
+          <button id="playAllFills" class="big-icon" type="button" disabled title="Play all available Fill playlists in the current loop together" aria-label="Play all Fill playlists">▶▶</button>
+          <button id="pvPlay" class="big-icon" title="Play / pause. Without a loop it starts at the first note and shortens long silences. To jump elsewhere: click the ruler or the lanes">▶</button>
+          <button id="pvStop" class="big-icon" title="Stop. With ▶▶ Fill playlists playing, each row keeps the proposal you are hearing (↶ puts the rows back as they were)">■</button>
+        </div>
+      </div>
+        <button id="logToggle" class="log-toggle" title="Show / hide the log" aria-expanded="false">▸ Log</button>
+          <button id="allowMidi" hidden title="Allow MIDI Digger to read the current library without the helper server">Allow MIDI access…</button>
+          <div class="loop-file-actions">
+            <button id="loopSave" disabled>⤓ Save loop</button>
+            <button id="loopOpen" title="Open a loop saved with Save loop, in New loop (a Loop kit saved by an earlier version opens as a loop too)">⤒ Open loop…</button>
+          </div>
+          <button id="loopMidi" disabled>⤓ MIDI</button>
+          <button id="dataBtn" title="See the analysed data as it is stored: every file and every part, in a table">▦ Data</button>
+          <button id="lunaExportOpen" class="luna-export-open">LUNA Export</button>
+          <button id="fitSession" title="Fit to your LUNA session: reads its MIDI tracks (the bars of LUNA's loop, or 8 bars from its playhead; muted tracks left out) and sorts Parts by what goes best with them, note against note. Audio tracks named as drums or bass give their groove (where they strike); other audio is not read. Again to read it anew">🎯 Fit to session</button>
+        <div id="headerEndcap" class="header-endcap">
+          <button id="licenceBtn" class="licence-btn" hidden></button>
+          <div id="status">connecting…</div>
+        </div>
+    </div>
+  </header>
+  <div id="layout">
+    <aside id="lib">
+      <!-- ▶▶ playlists sounding on different rows, controlled from whichever tab is open. -->
+      <div id="chainStrip" class="chain-strips" hidden></div>
+      <template id="chainStripTemplate">
+        <div class="chain-strip">
+        <span class="chain-strip-text"></span>
+        <button type="button" data-chain-act="prev" title="The one before in the list, on the next beat" aria-label="The one before in the list">⏮&#xFE0E;</button>
+        <button type="button" data-chain-act="next" title="The next one in the list, on the next beat" aria-label="The next one in the list">⏭&#xFE0E;</button>
+        <button type="button" data-chain-act="back" title="Back: the one that sounded before this one, on the next beat" aria-label="Back to the one before">↶</button>
+        <button type="button" data-chain-act="fwd" title="Forth again: the one you went back from, on the next beat" aria-label="Forth again">↷</button>
+        <button type="button" data-chain-act="repeat" title="Stay on the one playing, again and again; press again to go on with the next" aria-label="Stay on this one">↻</button>
+        <button type="button" data-chain-act="mark" title="Mark the one playing as the chorus (again: unmark it)" aria-label="Mark as the chorus">★</button>
+        <button type="button" data-chain-act="chorus" title="Back to the chorus, on the next beat; after it, on with the one you were on" aria-label="Back to the chorus">↩&#xFE0E;★</button>
+        <button type="button" data-chain-act="stop" title="Stop the playlist: its row as it was" aria-label="Stop the playlist">■</button>
+        <button type="button" data-chain-act="save" title="Save the chain: what you heard, one after another into the loop (↶ to undo)" aria-label="Save the chain">⤓</button>
+        </div>
+      </template>
+      <div class="tabs" id="libraryTabs"><button id="tab-files" class="on">Files</button><button id="tab-parts">Parts</button><button id="tab-favorites" title="Your favourite fragments, in collections">Favorites</button><button id="tab-summary" title="Live ranking of analysed fragments that fit the open loop">Summary</button><span id="groupedFillTab" class="fill-review-tab" hidden><button id="tab-fill" title="Grouped results from Fill or Arrange">Fill results</button><button id="closeGroupedFill" type="button" title="Close these results and stop their playlists" aria-label="Close Fill results">×</button></span><span id="fillReviewTabs" class="fill-review-tabs"></span></div>
+
+      <div id="pane-files" class="pane">
+        <div class="row"><button id="chooseFolder">Choose folder…</button><input id="root" type="text" class="grow" readonly tabindex="-1" placeholder="your MIDI library folder" title="Your MIDI library folder: change it with Choose folder…"><button id="scan" title="Scan the folder again">↻</button></div>
+        <div class="row"><input id="filter" type="text" class="grow" placeholder="search (name, folder, title or author)"><span class="count" id="fileCount"></span></div>
+        <div class="thead"><span class="c-name">File</span><span class="c-title">Title</span><span class="c-author">Author / ©</span><span class="c-num">Length</span><span class="c-num c-bpm">BPM</span><span class="c-folder">Folder</span></div>
+        <div id="fileBody" class="tbody"></div>
+        <!-- First run: no library yet. -->
+        <div id="fileEmpty" class="empty" hidden>
+          <div class="empty-title">Choose your MIDI library folder</div>
+          <p>MIDI Digger finds every .mid file in that folder and its subfolders, and analyses them to find their parts and loops. Nothing leaves your computer.</p>
+          <button id="emptyChoose" class="primary">Choose folder…</button>
+        </div>
+        <div class="row"><span id="indexInfo"></span></div>
+      </div>
+
+      <div id="pane-parts" class="pane" hidden>
+        <!-- What it plays (as drawings), a search that also takes gestures, then a grid of filters,
+             the order against the loop, Fragments. -->
+        <div class="row search-controls">
+          <select id="fRole" title="What the part plays"><option value="">All roles</option><option value="drums">Drums</option><option value="bass">Bass</option><option value="chords">Chords</option><option value="melody">Melody</option></select>
+          <div id="roleBar" class="family-bar"></div>
+          <input id="fText" type="search" class="grow" placeholder="Search file, track, instrument or gesture" autocomplete="off">
+          <button id="fClear" title="Clear the filters">✕</button>
+          <button id="fHelp" class="search-help" title="Show musical search options" aria-label="Show musical search options">?</button>
+        </div>
+        <div class="search-filters">
+          <select id="fFamily" aria-label="Instrument" title="The instrument it sounds with (its General MIDI family)"><option value="">All instruments</option></select>
+          <select id="fGesture" aria-label="Gesture" title="Only parts with a fragment that plays this; the card shows that fragment"><option value="">All gestures</option></select>
+          <select id="fLoop" aria-label="Fragment length" title="Only parts with a fragment this long; each card then shows only that fragment's bars, every one at the same scale"><option value="">Any length</option><option value="1">1 bar</option><option value="2">2 bars</option><option value="4">4 bars</option><option value="8">8 bars</option><option value="12">12 bars</option><option value="16">16 bars</option><option value="32">32 bars</option></select>
+          <select id="fTs" aria-label="Meter" title="Meter"><option value="">Any meter</option></select>
+          <select id="fKey" aria-label="Key" title="Key"><option value="">Any key</option></select>
+          <input id="fBpmMin" type="number" min="1" max="999" placeholder="Min BPM" aria-label="Minimum BPM">
+          <input id="fBpmMax" type="number" min="1" max="999" placeholder="Max BPM" aria-label="Maximum BPM">
+          <select id="fEnergy" aria-label="Energy" title="How many notes its fragment plays"><option value="">Any energy</option><option value="sparse">Sparse</option><option value="medium">Medium</option><option value="busy">Busy</option></select>
+          <select id="sortBy" aria-label="Sort" title="Order of Parts. Fit: how its notes and rhythm go with the loop (or the LUNA session). Fill %: Fill's whole score, 45% Fit + 25% Length + 15% Dynamics + 5% Activity + 10% Role, each part on its best fragment (New loop only). With no loop: file order, or by gesture score when a gesture is chosen. Tempo: in a loop, the nearest to its tempo first; with no loop, the slowest first. Longest fragment. Random. If the loop changes afterwards, ↓ Sort lights up: press it to sort again"><option value="fit">Fit</option><option value="fill">Fill %</option><option value="bpm">Tempo</option><option value="bars">Longest</option><option value="random">Random</option></select>
+          <button id="sortFit" title="Sort Parts again by what is chosen in the order list (Random: shuffle again)" disabled>↓ Sort</button>
+          <label class="chk" title="Only fragments that repeat in their song (played twice or more)"><input id="fRepeats" type="checkbox"> Repeats</label>
+          <label class="chk" title="Show each card's fragments on its thumbnail (the coloured bands, the one chosen framed); off: only the notes, and a click on it listens from there"><input id="fFrags" type="checkbox" checked> Fragments</label>
+        </div>
+        <!-- 🎯 on: what Parts is sorted by, read from the LUNA session, and ✕ back to the usual order. -->
+        <div id="fitNote" class="fit-note" hidden><span id="fitText"></span><button id="fitOff" title="Stop fitting to the session: Parts in its usual order (or by New loop's loop)">✕</button></div>
+       <div id="partNote" class="part-note" hidden><span class="note-text"></span><button type="button" class="note-close" title="Close this note (it comes back if it says something else)" aria-label="Close this note">✕</button></div>
+        <!-- By Fill %: what it was measured against (the loop, or the pads selected), at the moment it was sorted. -->
+        <div id="fillNote" class="fill-note" hidden><span class="note-text"></span><button type="button" class="note-close" title="Close this note (it comes back if it says something else: the loop changed)" aria-label="Close this note">✕</button></div>
+        <div id="partBody" class="tbody"></div>
+        <div class="row"><span id="partCount"></span></div>
+      </div>
+
+      <!-- Favorites: fragments kept in collections of the user's (library/favorites.js). -->
+      <div id="pane-favorites" class="pane" hidden>
+        <div class="row fav-tools">
+          <button id="favNew" title="A new collection (for example: Techno drums, Celtic, Intros)">+ New collection</button>
+          <label class="fav-sort" title="In New loop: each collection's favourites with the best fit with the loop first (the % on each one)"><input type="checkbox" id="favByFit"> Best fit first</label>
+          <span class="grow"></span>
+          <button id="favSave" title="Save all your favourites and collections as one .mdig file (a backup, or to share)">⤓ Save</button>
+          <button id="favRestore" title="Add the favourites of a .mdig saved with ⤓ Save: same-named collections come together, no fragment twice">⤒ Restore…</button>
+        </div>
+        <div id="favBody" class="fav-body"></div>
+        <div class="row"><span id="favCount" class="dim"></span></div>
+      </div>
+
+      <div id="pane-summary" class="pane summary-pane" hidden>
+        <div class="row summary-tools">
+          <button id="summaryRefresh" title="Recalculate against the whole current loop">↻ Recalculate</button>
+          <select id="summaryBars" aria-label="Summary fragment length"><option value="">Any bars</option><option value="1">1 bar</option><option value="2">2 bars</option><option value="4">4 bars</option><option value="8">8 bars</option><option value="12">12 bars</option><option value="16">16 bars</option></select>
+          <span id="summaryCount" class="dim grow"></span>
+        </div>
+        <!-- As Parts' bar: what the instrument plays, as drawings, and its name. -->
+        <div class="row search-controls">
+          <div id="summaryRoleBar" class="family-bar"></div>
+          <input id="summaryText" type="search" class="grow" placeholder="Search instrument" autocomplete="off" aria-label="Search instrument">
+          <button id="summaryClear" title="Clear the filters">✕</button>
+        </div>
+        <div id="summaryContext" class="part-note" hidden><span class="note-text"></span><button type="button" class="note-close" title="Close this note (until LUNA restarts)" aria-label="Close this note">✕</button></div>
+        <div id="summaryBody" class="summary-body"></div>
+      </div>
+
+      <!-- Fill details: what Fill or Arrange found for the loop, to listen to or replace. -->
+      <div id="pane-fill" class="pane fill-pane" hidden>
+        <!-- ▶▶: the proposals one after another into the loop; fixed over the list, as Parts' and Search's tools. -->
+        <div id="fillChainBar" class="row search-controls fill-chain-bar" hidden>
+          <select id="chainGroup" class="grow" aria-label="Whose proposals" title="Whose proposals ▶▶ plays: what Fill or Arrange found for each of these"></select>
+          <button id="chainPlay" type="button" title="▶▶ The proposals change at each loop boundary, returning to the first after the last">▶▶</button>
+          <button id="chainPrev" type="button" title="The one before in the list, on the next beat" aria-label="The one before in the list" disabled>⏮&#xFE0E;</button>
+          <button id="chainNext" type="button" title="The next one in the list, on the next beat" aria-label="The next one in the list" disabled>⏭&#xFE0E;</button>
+          <button id="chainBack" type="button" title="Back: the one that sounded before this one (whatever its place in the list), on the next beat" aria-label="Back to the one before" disabled>↶</button>
+          <button id="chainFwd" type="button" title="Forth again: the one you went back from, on the next beat" aria-label="Forth again" disabled>↷</button>
+          <button id="chainRepeat" type="button" title="Stay on the one playing, again and again; press again to go on with the next" aria-label="Stay on this one" disabled>↻</button>
+          <button id="chainMark" type="button" title="Mark the one playing as the chorus (again: unmark it)" aria-label="Mark as the chorus" disabled>★</button>
+          <button id="chainChorus" type="button" title="Back to the chorus, on the next beat; after it, on with the one you were on" aria-label="Back to the chorus" disabled>↩&#xFE0E;★</button>
+          <button id="chainSave" type="button" title="Save the proposals heard through a loop boundary, and the one playing, in order using their original lengths, cut at the end (↶ to undo)" disabled>⤓ Save chain</button>
+        </div>
+        <div id="chainStatus" class="search-status fill-chain-status" hidden></div>
+        <details class="fill-pane-about">
+          <summary>About these scores</summary>
+          <p>Scores were calculated when Fill (or Arrange) ran, before adaptation. ▶ plays the original fragment alone at the loop tempo through the global Sound; it stops loop playback but does not change the loop. Leaving this tab stops the preview.</p>
+          <p class="dim">The context and fragment fingerprints are snapshots from the decision, not live recalculations. Alternatives passed Fill's scoring filters at that step but may not have been tried or readable.</p>
+        </details>
+        <div id="fillDetailsEmpty" class="dim fill-empty"></div>
+        <div id="fillDetailsBody" class="fill-details-body"></div>
+      </div>
+
+      <div id="catalog">
+        <div class="row"><span id="catStatus">No library yet</span><button id="indexBtn" hidden>Analyse</button><button type="button" id="catalogClose" class="note-close" title="Close this notice (it comes back when it has something new to say: analysis starts or stops, or another library)" aria-label="Close this notice">✕</button></div>
+        <div class="bar"><div id="catBar"></div></div>
+      </div>
+    </aside>
+    <div id="split" title="Drag to change the width · double click: default width"></div>
+    <div id="right">
+      <main>
+        <section>
+          <div id="workspaceTabs" class="workspace-tabs" role="tablist" aria-label="Songs and loops">
+            <button id="songTab" class="workspace-tab on" role="tab" aria-selected="true">Song</button>
+            <div id="loopTabs" class="loop-tabs"></div>
+            <button id="newLoop" class="workspace-new" title="Create a new loop. Selected bars in the song seed it; otherwise it starts empty">+ New loop</button>
+          </div>
+          <div id="songWorkspace" class="song-workspace">
+            <div class="row file-head"><h2>File</h2><span id="selected">(no file chosen)</span><span id="fileFacts" class="file-facts"></span><button id="favRegion" class="reveal-file fav-region" type="button" hidden disabled>☆</button><button id="revealFile" class="reveal-file" type="button" title="Show this file in Explorer" hidden>📂</button><span id="access"></span></div>
+            <div id="timeline" class="timeline" hidden></div>
+          </div>
+          <div id="loopWorkspace" class="loop-workspace" hidden>
+            <div id="loopToolbar" class="loop-toolbar"></div>
+            <div id="loopPanel" class="loop-panel"></div>
+          </div>
+        </section>
+      </main>
+      <div id="split-y" role="separator" aria-orientation="horizontal" title="Drag to change the height · double click: default height"></div>
+      <div id="logWrap">
+        <button id="logClose" class="log-close" type="button" title="Close the log (▸ Log in the toolbar opens it again)" aria-label="Close the log">✕</button>
+        <div id="log"></div>
+      </div>
+    </div>
+  </div>
+  <!-- "?" beside Analyse: what the analysis does, how long it takes, what works without it. -->
+  <dialog id="lunaExportDlg" class="help-dlg luna-export-dlg" aria-labelledby="lunaExportTitle">
+    <div class="luna-export-heading">
+      <h3 id="lunaExportTitle">LUNA Export</h3>
+      <button id="lunaExportClose" aria-label="Close LUNA Export">✕</button>
+    </div>
+    <div class="card" id="compose" role="group" aria-label="Send to LUNA">
+      <div class="card-row">
+        <span class="field-label">To</span>
+        <div class="seg" role="radiogroup" aria-label="Destination">
+          <label title="One track per channel"><input type="radio" name="dest" id="destNew" checked>New track</label>
+          <label title="The track selected in LUNA: audio on an audio track (channels mixed), notes on an instrument track"><input type="radio" name="dest" id="destSel">Selected track</label>
+        </div>
+      </div>
+      <div class="card-row" id="kindGroup" role="group" aria-label="What to create">
+        <span class="field-label">Create</span>
+        <label class="chk big" title="Audio rendered with the preview's soundfont: sounds just like here"><input type="checkbox" id="withAudio" checked> Sound</label>
+        <label class="chk big" title="The notes, to edit them or play them with a LUNA instrument"><input type="checkbox" id="withMidi"> MIDI</label>
+      </div>
+      <div class="card-row actions">
+        <button id="importFile" title="LUNA's own import: the whole file, all its MIDI tracks, regardless of marked channels or region">⇩ Export whole file</button>
+        <span id="composeStatus" class="compose-status" aria-live="polite"></span>
+        <button id="newTracks" class="off" title="New loop: the next send makes new tracks at LUNA's cursor, instead of going on after the last one on the same tracks">＋ New tracks</button>
+        <button id="addPicks" class="primary" title="At LUNA's cursor, at the session's tempo">➜ Send to LUNA</button>
+      </div>
+    </div>
+  </dialog>
+  <!-- Analyse, every 1,000 files: carry on, or work with what is analysed now. -->
+  <dialog id="indexAskDlg" class="help-dlg index-ask-dlg" aria-labelledby="indexAskTitle">
+    <h3 id="indexAskTitle">1,000 more files analysed</h3>
+    <p id="indexAskText"></p>
+    <p class="dim">Parts and Fill already use the files analysed. Analyse carries on later where it stopped.</p>
+    <div class="index-ask-buttons">
+      <button id="indexAskUse" type="button" title="Stop here and work with the files analysed so far">Use these files</button>
+      <button id="indexAskAll" type="button" title="Analyse the rest of the library without asking again (until the next time you press Analyse)">Analyse all</button>
+      <button id="indexAskMore" type="button" class="primary" title="Analyse 1,000 more files, then ask again">1,000 more</button>
+    </div>
+  </dialog>
+  <dialog id="helpDlg" class="help-dlg">
+    <h3>What "Analyse" does</h3>
+    <p>Opening a folder only <b>lists</b> its MIDI files: quick, and you can already browse, open and listen to any of them. <b>Analyse</b> reads the files and adds their parts, fragments and Search scores as it goes. Previously analysed files without Search scores are read again once.</p>
+    <ul>
+      <li><b>For each file:</b> length, tempo, meter, key (estimated from the notes when the file does not say), title and author.</li>
+      <li><b>For each part</b> (channel): instrument, role (drums, bass, chords, melody), notes and the loops it repeats.</li>
+    </ul>
+    <p><b>What you get:</b> the Parts tab can search inside the songs ("a bass with a 2-bar loop at 120 BPM"), and the Length, BPM, Title and Author columns are filled for every file. Musical searches such as "snare roll" or "redoble de caja" rank drum fragments by how many standard MIDI snare notes (38/40) occur close together. This is a useful first pass, not a guarantee: some MIDI files use non-standard drum mappings. Files opened individually may be analysed on demand.</p>
+    <p><b>How long:</b> depends on the files and your computer. The window stays usable but slower meanwhile; the analysis waits while you listen or send to LUNA. <b>Pause</b> and <b>Resume</b> whenever you like: what is done is kept.</p>
+    <p><b>Your files are only read:</b> nothing is changed, moved or sent anywhere. Everything stays on your computer.</p>
+    <p class="dim">LUNA for Windows clears add-ons' saved data when it restarts, so after restarting LUNA the folder is listed again and the analysis may need running again.</p>
+    <div class="dlg-actions"><button id="helpClose" class="primary">Got it</button></div>
+  </dialog>
+  <dialog id="searchHelpDlg" class="search-help-dlg">
+    <h3>Musical search</h3>
+    <p>Click a phrase to put it in the Parts search and show matching parts. Spanish and English are supported.</p>
+    <ul>
+      <li><b>Snare roll:</b> <button type="button" class="search-example" data-query="redoble de caja">redoble de caja</button> <button type="button" class="search-example" data-query="snare roll">snare roll</button> <button type="button" class="search-example" data-query="drum roll">drum roll</button></li>
+      <li><b>Drum sounds:</b> <button type="button" class="search-example" data-query="bombo">bombo</button> <button type="button" class="search-example" data-query="kick">kick</button> <button type="button" class="search-example" data-query="caja">caja</button> <button type="button" class="search-example" data-query="snare">snare</button> <button type="button" class="search-example" data-query="hi-hat">hi-hat</button> <button type="button" class="search-example" data-query="hi-hat cerrado">hi-hat cerrado</button> <button type="button" class="search-example" data-query="open hi-hat">open hi-hat</button> <button type="button" class="search-example" data-query="toms">toms</button></li>
+      <li><b>Drum patterns:</b> <button type="button" class="search-example" data-query="bombo a negras">bombo a negras</button> <button type="button" class="search-example" data-query="four on the floor">four on the floor</button> <button type="button" class="search-example" data-query="caja en 2 y 4">caja en 2 y 4</button> <button type="button" class="search-example" data-query="backbeat">backbeat</button> <button type="button" class="search-example" data-query="shuffle">shuffle</button> <button type="button" class="search-example" data-query="redoble de toms">redoble de toms</button> <button type="button" class="search-example" data-query="tom fill">tom fill</button></li>
+      <li><b>Arpeggio:</b> <button type="button" class="search-example" data-query="arpegio">arpegio</button> <button type="button" class="search-example" data-query="arpeggio">arpeggio</button> <button type="button" class="search-example" data-query="arpegio de piano">arpegio de piano</button> <button type="button" class="search-example" data-query="guitar arpeggio">guitar arpeggio</button> <button type="button" class="search-example" data-query="arpegio de bajo">arpegio de bajo</button></li>
+    </ul>
+    <p class="dim">These are MIDI pattern detectors, not audio recognition; drum sound searches assume the General MIDI map and results may include false matches. The selected SoundFont changes playback, not these MIDI labels.</p>
+    <div class="dlg-actions"><button id="searchHelpClose" class="primary">Got it</button></div>
+  </dialog>
+  <!-- "▦ Data": the analysed catalogue, raw, a page at a time (ui/data-viewer.js fills it). -->
+  <dialog id="loopSoundDlg" class="loop-sound-dlg">
+    <h2>Choose row sound</h2>
+    <p class="loop-sound-row"></p>
+    <label>Source <select class="loop-sound-source">
+      <option value="default">Default Sound setting</option>
+      <option value="soundfont">SoundFont preset</option>
+      <option value="luna">LUNA instrument track</option>
+    </select></label>
+    <div class="loop-sound-choices" hidden>
+      <input class="loop-sound-search" type="text" placeholder="Search presets" aria-label="Search presets">
+      <select class="loop-sound-family" aria-label="GM instrument family"></select>
+      <select class="loop-sound-list" size="10" aria-label="Sound or track"></select>
+      <p class="loop-sound-hint"></p>
+    </div>
+    <div class="loop-sound-test"></div>
+    <div class="loop-sound-actions"><button class="loop-sound-cancel">Cancel</button><button class="loop-sound-apply primary">Apply</button></div>
+  </dialog>
+  <!-- Save loop: the file's name, before it is downloaded. -->
+  <dialog id="saveNameDlg" class="help-dlg save-name-dlg" aria-labelledby="saveNameTitle">
+    <form method="dialog">
+      <h3 id="saveNameTitle">Save loop</h3>
+      <p class="dim" id="saveNameHint">The name of the file in your Downloads folder.</p>
+      <label class="save-name-field"><input id="saveNameInput" type="text" spellcheck="false" autocomplete="off" aria-label="File name"><span id="saveNameExt">.json</span></label>
+      <div class="dlg-actions"><button type="button" id="saveNameCancel">Cancel</button><button type="submit" id="saveNameOk" class="primary">Save</button></div>
+    </form>
+  </dialog>
+  <dialog id="dataDlg" class="data-dlg"></dialog>
+  <script src="vendor/luna.global.js"></script>
+  <script src="dist/main-88dfbfbe01.js"></script>
+</body>
+</html>

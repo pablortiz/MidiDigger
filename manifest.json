@@ -1,0 +1,16 @@
+{
+    "package_name": "MIDI Digger",
+    "id": "es.elper.mididigger",
+    "title": "MIDI Digger",
+    "version": "1.0.0",
+    "manufacturer": "elper.es",
+    "sdk_version": "0.1.1.22",
+    "min_luna_version": "3.1.1",
+    "engines": ["luna"],
+    "html": "index.html",
+    "target": "window",
+    "floating": true,
+    "show_with_session": false,
+    "width": 1300,
+    "height": 720
+}

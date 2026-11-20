@@ -1,0 +1,26 @@
+{
+  "name": "midi-digger",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MIDI Digger: browse a MIDI library, hear its parts and loops, and take them to LUNA. A LUNA Add On built with @uaudio/luna-builder-sdk",
+  "scripts": {
+    "build": "vite build && node .dev/stamp.mjs",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "serve": "ua-builder serve",
+    "install-addon": "npm run build && node .dev/install.mjs",
+    "pack": "npm run build && node .dev/pack.mjs",
+    "midi-server": "node .dev/midi-server.mjs 8795 D:\\midi"
+  },
+  "devDependencies": {
+    "@uaudio/luna-builder-sdk": "file:../LUNA Builder SDK",
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
+  },
+  "dependencies": {
+    "@noble/ed25519": "2.3.0",
+    "spessasynth_core": "^4.3.22"
+  }
+}

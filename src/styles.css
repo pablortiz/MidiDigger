@@ -1,0 +1,897 @@
+/* --safe-bottom / --safe-right: inside LUNA on Windows the add-on window's frame covers a band
+   at the bottom and a few px on the right of the page (seen in LUNA 3.1.1), so the layout
+   stops short of them. main.js sets the bottom one. */
+:root { color-scheme: dark; --accent: #F7C449; --bg: #151515; --panel: #1d1d1d; --line: #2c2c2c; --safe-bottom: 0px; --safe-right: 12px; }
+* { box-sizing: border-box; }
+html { height: 100%; overflow-x: auto; }
+body { margin: 0; background: var(--bg); color: #ddd; font: 13px "Segoe UI", -apple-system, Helvetica, sans-serif; display: flex; flex-direction: column; height: 100%; overflow: hidden; padding-bottom: var(--safe-bottom); padding-right: var(--safe-right); }
+header { position: relative; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 14px; background: #222; border-bottom: 1px solid #333; }
+.header-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; flex: 1 1 100%; min-width: 0; }
+.library-toolbar > * { flex: 0 0 auto; }
+.loop-file-actions { display: flex; gap: 4px; }
+.library-toolbar button { height: 28px; padding: 0 8px; font-size: 12px; }
+.loop-toolbar { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); align-items: center; gap: 4px; container-type: inline-size; padding: 3px 4px; background: #161616; border: 1px solid var(--line); border-radius: 6px; }
+.loop-toolbar[hidden] { display: none; }
+.loop-toolbar .lp-head, .loop-toolbar .lp-tools { display: contents; }
+.loop-toolbar .lp-tools[hidden] { display: none; }
+.loop-toolbar .lp-head > *, .loop-toolbar .lp-tools > * { min-width: 0; }
+.loop-toolbar .lp-head > label { display: flex; align-items: center; gap: 4px; }
+.loop-toolbar .lp-head > label[hidden] { display: none; }
+.loop-toolbar .lp-head > label input, .loop-toolbar .lp-head > label select { flex: 1 1 0; min-width: 0; width: 100%; }
+.loop-toolbar .lp-hint { display: none; }
+.loop-toolbar .lp-play-group { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 65px), 1fr)); gap: 4px; margin: 0; }
+.loop-toolbar .lp-play-group[hidden] { display: none; }
+.loop-toolbar .lp-source { width: 100%; max-width: none; }
+.loop-toolbar .lp-group { grid-column: span 2; width: 100%; }
+.loop-toolbar .lp-group button { flex: 1 1 0; min-width: 0; }
+@container (max-width: 263px) { .loop-toolbar .lp-group { grid-column: span 1; } }
+.loop-toolbar .lp-head button, .loop-toolbar .lp-head select, .loop-toolbar .lp-head input,
+.loop-toolbar .lp-tools button, .loop-toolbar .lp-tools select { height: 28px; font-size: 12px; padding: 0 8px; }
+.loop-toolbar .lp-tools-toggle { grid-column: -2 / -1; height: 28px; padding: 0 8px; font-size: 12px; }
+/* Folded: the loop's settings, ✨ Fill and the toggle stay */
+.loop-toolbar.lp-tools-collapsed .lp-tools,
+.loop-toolbar.lp-tools-collapsed .lp-play-group,
+.loop-toolbar.lp-tools-collapsed .lp-source,
+.loop-toolbar.lp-tools-collapsed .lp-daring { display: none; }
+.header-endcap { display: flex; flex: 0 0 auto; flex-direction: row; align-items: center; justify-content: flex-end; min-width: 0; }
+.luna-export-dlg { width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; }
+.luna-export-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.luna-export-heading h3 { margin: 0; }
+.luna-export-dlg #compose { flex-direction: column; align-items: stretch; gap: 14px; padding: 12px; overflow: visible; }
+.luna-export-dlg #compose .card-row { flex-wrap: wrap; }
+.luna-export-dlg #compose .card-row.actions { flex: 0 0 auto; margin: 0; }
+.luna-export-dlg #compose .compose-status { flex: 1 1 100%; margin: 0; white-space: normal; text-align: left; }
+.luna-export-dlg #compose .compose-status:empty { display: none; }
+/* the session: kept inside the window (LUNA's frame covers a few px on the right), and
+   standing out when none is open */
+#status { max-width: 140px; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #9fd8a8; }
+#status.none { color: #f0b45c; background: #3a2c12; border: 1px solid #7a5a20; border-radius: 10px; padding: 1px 10px; font-weight: 600; }
+header { min-width: 0; }
+input, select, button { font: inherit; background: #2a2a2a; color: #ddd; border: 1px solid #444; border-radius: 5px; padding: 4px 8px; }
+input[type=text], input[type=number] { min-width: 0; }
+input[type=number] { width: 64px; }
+select { min-width: 0; max-width: 100%; }
+button { cursor: pointer; white-space: nowrap; }
+button:hover { border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+[hidden] { display: none !important; }
+.row { display: flex; gap: 6px; align-items: center; margin: 5px 0; flex-wrap: wrap; }
+.row > .grow { flex: 1; }
+.row label { color: #999; }
+.chk { display: flex; align-items: center; gap: 4px; color: #bbb; font-size: 12px; white-space: nowrap; }
+.okc { color: #8fd18f; } .warnc { color: #e6b45c; } .errc { color: #f07a7a; }
+.dim { color: #666; }
+
+/* layout: library | divider | right */
+#layout { flex: 1 1 0; min-height: 0; display: flex; }
+#lib { width: 46%; min-width: 300px; flex: 0 0 auto; min-height: 0; display: flex; flex-direction: column; padding: 8px 6px 8px 14px; }
+#split { flex: 0 0 7px; cursor: col-resize; border-left: 1px solid var(--line); touch-action: none; }
+#split:hover, #split.drag { background: var(--accent); border-color: var(--accent); }
+#right { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+
+/* library */
+/* tabs sit on a line of their own, with room below before the pane's controls */
+.tabs { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 4px; max-height: 25vh; overflow-y: auto; margin-bottom: 10px; border-bottom: 1px solid #5a4c26; }
+.tabs button { border-radius: 6px 6px 0 0; border-bottom: 0; background: #1f1f1f; color: #aaa; padding: 6px 14px; margin-bottom: -1px; }
+.tabs button.on { background: #2e2a1e; color: var(--accent); border-color: #5a4c26; box-shadow: inset 0 -2px 0 var(--accent); }
+.fill-review-tabs { display: contents; }
+.fill-review-tab { display: flex; flex: none; }
+.fill-review-tab[hidden] { display: none; }
+.tabs .fill-review-tab > button:first-child { max-width: 150px; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
+.tabs .fill-review-tab > button:last-child { padding: 6px; border-radius: 0 6px 0 0; }
+.fill-review-tab.playing > button:first-child::before { content: '▶▶ '; color: var(--accent); }
+.pane { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.pane .row { flex-wrap: nowrap; }
+.pane .row.wrap { flex-wrap: wrap; }
+#indexInfo, #partCount { color: #888; font-size: 11px; white-space: nowrap; }
+.search-controls { margin-bottom: 4px; }
+/* 4 columns, 3 rows; 3 columns when the library panel (46 % of the window) is under ~470 px. */
+.search-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-bottom: 4px; }
+@media (max-width: 1020px) { .search-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.search-filters select, .search-filters input[type=number] { width: 100%; font-size: 11px; }
+.search-filters .chk { justify-content: center; }
+.search-filters button { font-size: 11px; }
+.search-controls .search-help { width: 30px; height: 30px; flex: 0 0 30px; padding: 0; font-weight: 700; }
+.search-help-dlg { width: min(460px, calc(100vw - 32px)); max-height: min(80vh, 560px); overflow: auto; }
+.search-help-dlg li { margin: 8px 0; line-height: 1.45; }
+.search-help-dlg .search-example { display: inline-block; margin: 1px 2px; padding: 1px 6px; border-color: #505050; color: #c4c4c4; font-size: 12px; line-height: 1.5; }
+.search-help-dlg .search-example:hover { color: #eee; border-color: var(--accent); background: #302c20; }
+.search-status { min-height: 18px; padding: 2px 3px 4px; color: #999; font-size: 11px; }
+/* Its song's tempo, beside the length (Parts and Search alike). */
+.pr-bpm { flex: 0 0 auto; font-size: 11px; color: #9aa; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pr-bpm:empty { display: none; }
+/* With a gesture chosen: how much the fragment is it, beside the instrument. */
+/* Header and body reserve the same scrollbar gutter, so the column titles sit over their columns. */
+.thead { display: flex; gap: 8px; padding: 4px 6px; color: #999; border-bottom: 1px solid #333; font-size: 12px; scrollbar-gutter: stable; }
+.count { margin-left: auto; color: var(--accent); white-space: nowrap; font-size: 12px; }
+.tbody { scrollbar-gutter: stable; flex: 1 1 0; min-height: 0; overflow-y: scroll; overflow-x: hidden; position: relative; background: #0e0e0e; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 6px 6px; }
+.vt-rows { position: absolute; top: 0; left: 0; right: 0; }
+.vt-row { position: absolute; left: 0; right: 0; height: 22px; display: flex; gap: 8px; align-items: center; padding: 0 6px; cursor: pointer; white-space: nowrap; border-bottom: 1px solid #191919; overflow: hidden; }
+.thead { overflow: hidden; white-space: nowrap; }
+.thead span { overflow: hidden; text-overflow: ellipsis; }
+.vt-row:hover { background: #222; }
+.vt-row.sel { background: #3a3220; color: #fff; }
+.vt-row.bad .c-name { color: #b46a6a; text-decoration: line-through; }
+.vt-row span { overflow: hidden; text-overflow: ellipsis; }
+.c-name { flex: 1 1 26%; min-width: 0; }
+.c-title { flex: 1 1 20%; min-width: 0; color: #e8d9a8; }
+.c-author { flex: 1 1 18%; min-width: 0; color: #aab7c8; }
+.c-folder { flex: 1 1 36%; min-width: 0; color: #999; }
+/* the parts table shares .c-name: there it keeps its old share */
+#pane-parts .c-name { flex-basis: 42%; }
+.thead .c-title, .thead .c-author { color: inherit; }
+.c-num { flex: 0 0 40px; text-align: right; color: #bbb; font-variant-numeric: tabular-nums; }
+.c-bpm { flex-basis: 34px; }
+.c-part { flex: 0 0 150px; }
+.c-name { min-width: 60px; }
+@media (max-width: 1100px) { .c-ts, .c-key { display: none; } }
+.c-ts { flex: 0 0 34px; color: #bbb; }
+.c-key { flex: 0 0 34px; color: #bbb; }
+.c-loop { flex: 0 0 66px; color: var(--accent); font-size: 11px; }
+.role { display: inline-block; font-size: 10px; padding: 0 5px; border-radius: 8px; line-height: 15px; color: #111; font-weight: 600; }
+.role-drums { background: #e8a33c; } .role-bass { background: #6fb3e8; } .role-chords { background: #b08be8; } .role-melody { background: #7fd18a; }
+#catalog { margin-top: 6px; padding: 6px 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }
+#catalog[hidden] { display: none; }
+#catalog .row { margin: 0; flex-wrap: wrap; }
+#catStatus { flex: 1; color: #bbb; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar { height: 4px; background: #2a2a2a; border-radius: 2px; overflow: hidden; }
+#catBar { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+.filters select, .filters input { padding: 3px 6px; }
+.filters #fText { flex: 1 1 160px; }
+
+/* right panel */
+main { display: flex; flex-direction: column; gap: 10px; padding: 10px 14px; overflow: scroll; flex: 0 1 50%; min-height: 0; }
+/* Always there, even with nothing to scroll (an empty track), with their own look: Windows'
+   overlay scrollbars hide until the mouse is over them. */
+main::-webkit-scrollbar, .tl-body::-webkit-scrollbar, .tbody::-webkit-scrollbar, .thead::-webkit-scrollbar { width: 12px; height: 12px; }
+main::-webkit-scrollbar-track, .tl-body::-webkit-scrollbar-track, .tbody::-webkit-scrollbar-track { background: #262626; }
+main::-webkit-scrollbar-thumb, .tl-body::-webkit-scrollbar-thumb, .tbody::-webkit-scrollbar-thumb { background: #5a5a5a; border-radius: 6px; border: 2px solid #262626; }
+main::-webkit-scrollbar-thumb:hover, .tl-body::-webkit-scrollbar-thumb:hover, .tbody::-webkit-scrollbar-thumb:hover { background: #777; }
+main::-webkit-scrollbar-corner, .tl-body::-webkit-scrollbar-corner, .tbody::-webkit-scrollbar-corner { background: #262626; }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px 10px; min-width: 0; }
+section h2 { font-size: 13px; margin: 0 0 6px; color: #eee; }
+section p { margin: 0 0 6px; color: #8a8a8a; font-size: 12px; }
+.file-head { flex-wrap: nowrap; margin-top: 0; }
+.file-head h2 { margin: 0; flex: 0 0 auto; }
+#selected { color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto; min-width: 0; direction: rtl; text-align: left; }
+/* The file's tempo, meter, key and length after its path; 📂 shows it in Explorer (in LUNA). */
+.file-facts { flex: 1 0 auto; color: #bbb; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.file-facts:not(:empty)::before { content: '·'; margin: 0 8px; color: #666; }
+.reveal-file { flex: 0 0 auto; padding: 1px 7px; }
+/* ★ the region's bars into favourites, left of 📂: lit when they are in a collection. */
+.fav-region { margin-right: 6px; color: #bbb; }
+.fav-region.on { color: var(--accent); }
+.fav-region:disabled { opacity: 0.4; }
+/* MIDI files dropped from Explorer: marked at the top of Files; the page lit while dragging over it. */
+.vt-row.dropped .c-name::before { content: '⤵ '; color: var(--accent); }
+body.drop-hot #pane-files { outline: 2px dashed var(--accent); outline-offset: -4px; }
+/* A file's menu in Files (right click). */
+.ctx-menu { position: fixed; z-index: 1000; min-width: 180px; padding: 4px; background: #222; border: 1px solid #444; border-radius: 6px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); }
+.ctx-menu button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 5px 10px; border-radius: 4px; }
+.ctx-menu button:hover { background: #333; }
+.ctx-menu button:disabled { color: #666; }
+/* toolbar: groups by purpose, separated by a rule; wraps as whole groups when narrow */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; margin: 6px 0; padding: 4px; background: #161616; border: 1px solid var(--line); border-radius: 6px; }
+.tb-group { display: flex; align-items: center; gap: 4px; padding: 0 8px; min-height: 30px; min-width: 0; max-width: 100%; border-left: 1px solid #333; }
+#soundSrc { flex: 0 1 200px; min-width: 90px; }
+.tb-group:first-child { border-left: 0; padding-left: 2px; }
+.tb-spacer { flex: 1; }
+.tb-spacer + .tb-group { border-left: 0; }
+.tb-label { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: #777; margin-right: 2px; }
+.toolbar button { height: 28px; padding: 0 10px; }
+.toolbar select { height: 28px; padding: 0 6px; }
+.tb-icon { width: 34px; padding: 0 !important; font-size: 13px; }
+.tb-lcd { font: 12px Consolas, Menlo, monospace; color: #9fd8a8; background: #0b0f0c; border: 1px solid #263028; border-radius: 4px; padding: 5px 8px; white-space: nowrap; margin-left: 2px; }
+/* deck: the two cards over the timeline */
+/* one column, a card per row: its title on the left, its controls along one line (wrapping
+   as whole groups when narrow), the actions at the right end */
+.deck { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 12px; }
+/* Never wraps: a card that does not fit slides sideways on one line, like midiGrid's toolbar
+   on a phone (here with a thin scrollbar, and the mouse wheel moves it too). */
+.card { display: flex; flex-wrap: nowrap; align-items: center; gap: 28px; padding: 12px 16px; background: #161616; border: 1px solid var(--line); border-radius: 8px; min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scrollbar-color: #444 transparent; }
+.card::-webkit-scrollbar { height: 6px; }
+.card::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.card > * { flex-shrink: 0; }
+.card { user-select: none; }   /* a stray drag does not paint the labels blue */
+.card .card-row { flex-wrap: nowrap; }
+.card .card-row > * { flex-shrink: 0; }
+.card > .card-row .grow { flex: 0 0 220px; width: 220px; }
+.card-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; font-size: 14px; }
+.card-row > .grow { flex: 1; min-width: 0; }
+.card-row button, .card-row select { height: 34px; font-size: 14px; padding: 0 12px; }
+.field-label { flex: 0 0 auto; color: #8a8a8a; font-size: 13px; }
+.big-icon { width: 44px; padding: 0 !important; font-size: 16px; }
+/* play and stop in midiGrid's colours: light green and light red, so they stand out */
+#pvPlay { background: #c8f2d4; border-color: #3aa864; color: #1a6a3a; }
+#pvStop { background: #f8d0d0; border-color: #d05050; color: #9a1a1a; }
+#pvPlay:hover:not(:disabled), #pvStop:hover:not(:disabled) { filter: brightness(0.93); }
+/* Allow MIDI access…: lit like a radio's ON AIR light, so it is not missed */
+#allowMidi { background: #ff6b6b; border-color: #ff9a9a; color: #fff; font-weight: 600; text-shadow: 0 0 4px rgba(255, 255, 255, 0.45); box-shadow: 0 0 6px rgba(255, 90, 90, 0.75), 0 0 14px rgba(255, 60, 60, 0.35); }
+#allowMidi:hover:not(:disabled) { background: #ff7f7f; }
+.card .tb-lcd { font-size: 15px; padding: 7px 12px; margin-left: 4px; }
+/* the tempo: amber when LUNA's session is at another one (what goes there plays at LUNA's) */
+.tb-bpm.differs { color: #f0c860; border-color: #5a4c26; background: #17140b; }
+.chk.big { font-size: 14px; gap: 6px; color: #ddd; }
+.chk.big input { width: 16px; height: 16px; }
+.card-row.actions { justify-content: flex-end; margin-left: auto; }
+/* a control that does not apply: invisible, but it keeps its room so nothing else moves */
+.card-row.off, #compose button.off { visibility: hidden; }
+.deck-send { margin: 10px 0 12px; }
+/* the send card on one line: its choices, then Import / Send to LUNA at the right end */
+#compose .card-row.actions { flex: 1 0 auto; justify-content: flex-end; }
+#compose .card-row.off, #compose button.off { display: none; }
+/* segmented choice: two options as one control */
+.seg { display: inline-flex; border: 1px solid #444; border-radius: 6px; overflow: hidden; }
+.seg label { position: relative; padding: 7px 14px; font-size: 14px; color: #bbb; cursor: pointer; background: #222; white-space: nowrap; }
+.seg label + label { border-left: 1px solid #444; }
+.seg label:hover { color: #fff; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: #2e2a1e; color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+.seg label:has(input:focus-visible) { outline: 1px solid var(--accent); }
+/* + New loop's box, under the song */
+.song-workspace.drop { outline: 1px dashed #6fb3e8; outline-offset: 3px; background: #18232b; }
+/* Song and loop workspaces are switched by their tabs. */
+/* Out to the panel's sides (its padding: 12px), so the line under the tabs goes across it, border to border */
+.workspace-tabs { display: flex; align-items: center; gap: 5px; margin: 0 -12px 10px; padding: 0 12px 5px; border-bottom: 1px solid #444; }
+.loop-tabs { display: flex; flex: 1 1 auto; gap: 5px; min-width: 0; overflow-x: auto; }
+.workspace-tab-wrap { position: relative; display: flex; flex: 0 0 auto; align-items: center; }
+.workspace-tab, .workspace-new { height: 30px; padding: 0 12px; color: #aaa; background: #1c1c1c; border-color: #383838; }
+.workspace-tab { display: inline-flex; align-items: center; gap: 8px; max-width: 240px; padding-right: 32px; }
+.workspace-tab.on { color: var(--accent); background: #2e2a1e; border-color: #5a4c26; }
+.workspace-close { position: absolute; top: 6px; right: 4px; width: 18px; height: 18px; padding: 0; line-height: 16px; color: #999; border: 0; background: transparent; z-index: 1; }
+.workspace-close:hover { color: #fff; background: #653a34; }
+.workspace-new { flex: 0 0 auto; color: var(--accent); }
+.song-workspace, .loop-workspace { min-width: 0; }
+.loop-workspace[hidden], .song-workspace[hidden] { display: none; }
+.loop-workspace .loop-panel { margin-top: 8px; }
+body.loop-mode #importFile { display: none; }   /* the song's */
+.loop-panel { margin-top: 10px; }
+.loop-panel[hidden] { display: none; }
+.lp-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; color: #aaa; font-size: 13px; }
+.lp-bpm { width: 62px; }
+.lp-hint { flex: 1; min-width: 0; }   /* room: the buttons after it go to the right */
+.lp-grid { display: grid; grid-template-columns: 150px repeat(var(--cols, 8), minmax(34px, 1fr)); gap: 5px; align-items: center; overflow: visible; padding: 0 12px 2px 0; }   /* main scrolls it, both ways: its head rows stay at the top (sticky) */
+/* New loop's counter, framed as the transport's displays: the beats, the bar of the loop, its laps */
+.lp-count { display: grid; grid-template: "beats lap" auto "bar bar" auto / 1fr auto; align-items: center; gap: 4px 10px; min-width: 0; margin-right: 12px; padding: 6px 8px; background: #0b0f0c; border: 1px solid #263028; border-radius: 6px; }
+.lp-count .cd-beats { grid-area: beats; }
+.lp-count .cd-bar { grid-area: bar; line-height: 1; white-space: nowrap; font-size: 17px; text-align: left; }
+.lp-count .cd-beats { gap: 4px; }
+.lp-count .cd-lap { grid-area: lap; min-width: 22px; text-align: right; }
+/* Two lines: the instrument, then its controls */
+.lp-name { display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0; font-size: 13px; color: #ddd; }
+.lp-name .pad-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lp-title { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.lp-title .pad-label { flex: 1 1 auto; }
+.lp-playlist { flex: 0 0 auto; color: var(--accent); font-size: 10px; white-space: nowrap; }
+.lp-playlist[hidden] { display: none; }
+.lp-name .lp-fav { height: 18px; width: 18px; font-size: 12px; border: 0; background: none; color: #888; }
+.lp-name .lp-fav:hover { color: var(--accent); }
+.lp-name .lp-fav.on { color: var(--accent); }
+.lp-ctl { display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
+.lp-ctl-buttons { display: flex; align-items: center; gap: 5px; }
+.lp-name button { height: 22px; width: 22px; padding: 0; font-size: 11px; flex: 0 0 auto; }
+.lp-name .lp-sound { color: #aaa; font-size: 12px; }
+.lp-name .lp-sound.on { color: var(--accent); border-color: #5a4c26; }   /* a sound of its own chosen */
+.loop-sound-dlg { width: min(460px, calc(100vw - 32px)); max-height: 80vh; overflow: auto; }
+.loop-sound-dlg label { display: flex; align-items: center; gap: 8px; }
+.loop-sound-dlg label select { flex: 1; }
+.loop-sound-choices { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.loop-sound-choices select { width: 100%; }
+.loop-sound-choices p { color: #999; margin: 0; }
+.loop-sound-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 12px; }
+.loop-sound-dlg:has(.loop-sound-test) { width: min(620px, calc(100vw - 32px)); max-height: 88vh; }
+/* Trying the sound (ui/sound-tester.js): a row per octave, twelve notes across; a kit, a pad per sound. */
+.loop-sound-test { margin-top: 12px; border-top: 1px solid #333; padding-top: 10px; }
+.st-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-bottom: 8px; }
+.st-buttons { display: flex; flex-wrap: wrap; gap: 4px; }
+.loop-sound-dlg .st-bar label { display: inline-flex; gap: 5px; align-items: center; color: #aaa; }
+.st-vel { width: 80px; }
+.st-grid { display: flex; flex-direction: column; gap: 2px; max-height: 300px; overflow-y: auto; user-select: none; touch-action: none; }
+.st-oct { display: grid; grid-template-columns: 38px repeat(12, 1fr); gap: 2px; padding: 1px; border-radius: 4px; border: 1px solid transparent; }
+/* Each octave in its own colour (--h, ui/mini.js octaveHue), as notes are drawn in the pads. */
+.st-oct.row { border-color: hsl(var(--h) 45% 45%); background: hsl(var(--h) 30% 14%); }
+.st-olabel { padding: 0; font-size: 11px; font-weight: 600; color: hsl(var(--h) 65% 62%); background: none; border: 1px solid transparent; border-radius: 3px; cursor: pointer; }
+.st-oct.sel .st-olabel { border-color: hsl(var(--h) 65% 62%); }
+.st-pad { position: relative; height: 22px; padding: 0; font-size: 10px; font-weight: 600; color: #555; background: #d8d8d8; border: 1px solid #111; border-radius: 3px; cursor: pointer; }
+.st-pad.b { background: #3a3a3a; color: #bbb; }
+.st-pad.none { visibility: hidden; }
+.st-pad.off { background: #6a6a6a; opacity: 0.55; }
+.st-pad.b.off { background: #2a2a2a; }
+.st-pad.sc { box-shadow: inset 0 3px hsl(var(--h) 70% 52%); color: hsl(var(--h) 65% 32%); }
+.st-pad.b.sc { color: hsl(var(--h) 75% 72%); }
+.st-pad.tonic { box-shadow: inset 0 5px hsl(var(--h) 80% 55%); font-weight: 800; }
+/* The row's notes: filled with their octave's colour, as in the pads. */
+.st-pad.used { background: hsl(var(--h) 65% 62%); color: #111; }
+.st-pad.b.used { background: hsl(var(--h) 55% 42%); color: #fff; }
+/* Sounding: brighter, outlined. */
+.st-pad.on, .st-pad.b.on { background: hsl(var(--h) 85% 66%); color: #111; outline: 2px solid #fff; outline-offset: -2px; }
+.st-grid.kit { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 3px; }
+.st-grid.kit .st-pad.used { background: hsl(35 70% 58%); color: #111; }
+.st-grid.kit .st-pad { height: 30px; font-size: 10px; font-weight: normal; color: #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px; }
+.st-hint { color: #999; margin: 6px 0 0; font-size: 12px; }
+/* The scale chosen stands out: keys out of it faded, the tonic framed in its octave's colour. */
+.st-grid.marks .st-pad:not(.sc):not(.used):not(.on):not(.none) { opacity: 0.35; }
+.st-pad.tonic { outline: 2px solid hsl(var(--h) 80% 58%); outline-offset: -2px; }
+.st-pad.tonic.on { outline-color: #fff; }
+/* A note the row plays out of the scale: named, framed red. */
+.st-pad.out { outline: 2px solid #e05050; outline-offset: -2px; color: #111; }
+.st-pad.b.out { color: #fff; }
+.st-pad.out.on { outline-color: #fff; }
+/* The scale's choice beside the ▶ buttons, narrow; its name and notes on a line of their own. */
+.st-scale-pick { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+.loop-sound-dlg .st-scale-pick label { display: inline-flex; gap: 4px; align-items: center; color: #aaa; }
+.loop-sound-dlg .st-scale-pick select { flex: 0 0 auto; }
+.st-key { width: 48px; }
+.st-mode { width: 100px; }
+.st-buttons button, .st-scale-pick button { padding: 2px 7px; }
+.st-bar:has(.st-scale-pick) { flex-wrap: wrap; gap: 6px 8px; }
+.st-scale-notes { color: #fff; font-size: 12px; margin: 0 0 8px; }
+.st-scale-notes b { color: #fff; }
+.st-dim { color: #888; }
+.st-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 8px; }
+.st-tabs [data-tab] { margin-right: -8px; }
+.st-tabs [data-tab].on { background: #4a3a1e; border-color: var(--accent); color: #fff; }
+.loop-sound-dlg .st-tabs label { display: inline-flex; gap: 5px; align-items: center; color: #aaa; }
+.st-tabs label:first-of-type { margin-left: auto; }
+/* Midigrid (ui/row-roll.js): the row's notes, the red line, the bars selected. */
+.rr-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; }
+.rr-bar .rr-play { min-width: 34px; }
+.rr-bar .rr-play.on { background: var(--accent); color: #111; border-color: var(--accent); }
+.loop-sound-dlg .rr-bar label { display: inline-flex; gap: 5px; align-items: center; color: #aaa; }
+.rr-info { color: #999; font-size: 12px; }
+.rr-box { position: relative; height: 220px; border: 1px solid #333; border-radius: 4px; overflow: hidden; background: #121212; }
+.rr-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rr-head { cursor: text; touch-action: none; }
+.lp-mute.on { color: #111; background: #e8a33c; border-color: #e8a33c; }
+.lp-solo.on { color: #111; background: #7fd18a; border-color: #7fd18a; }
+.lp-lock.on { background: #3a3220; border-color: #8a7230; }
+/* 🔗 LUNA: the loop plays along with the session; its offset beside it while on */
+.lp-sync.on { color: #111; background: #6fb3e8; border-color: #6fb3e8; font-weight: 600; }
+.lp-sync-ms { display: inline-flex; align-items: center; gap: 4px; }
+.lp-sync-ms[hidden] { display: none; }
+.lp-sync-ms input { width: 58px; }
+.lp-volume { flex: 0 0 auto; min-width: 0; width: 100%; max-width: calc(5 * 22px + 4 * 5px); margin: 0; }
+.lp-grid .pad { height: 92px; cursor: cell; touch-action: none; user-select: none; }
+.lp-grid .pad.sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+.lp-tools { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.lp-tools[hidden] { display: none; }
+.lp-tools button, .lp-tools select { height: 28px; padding: 0 10px; font-size: 12px; }
+.lp-tools { flex-wrap: wrap; row-gap: 6px; }
+/* ½× / 2× / Lock: one block, joined, that never splits over two lines. */
+.lp-group { display: inline-flex; flex: 0 0 auto; }
+.lp-group button { border-radius: 0; margin: 0; }
+.lp-group button + button { margin-left: -1px; }
+.lp-group button:first-child { border-radius: 4px 0 0 4px; }
+.lp-group button:last-child { border-radius: 0 4px 4px 0; }
+.lp-grid .pad.sel { cursor: grab; }
+.lp-grid .pad { position: relative; }
+.pad-shift { position: absolute; top: 3px; right: 4px; font: 600 11px Consolas, monospace; color: #111; background: #8fc7f0; border-radius: 6px; padding: 0 4px; pointer-events: none; }
+.pad-legato { position: absolute; bottom: 1px; right: 3px; font: 700 13px Consolas, monospace; color: #8fc7f0; pointer-events: none; }
+.lp-grid .pad.lifted { opacity: .3; }
+.lp-grid .pad.copy-drop { outline: 2px dashed var(--accent); outline-offset: 1px; }
+.lp-pad-ghost { position: fixed; z-index: 60; display: block; pointer-events: none; opacity: .9; outline: 2px solid var(--accent); border-radius: 5px; }
+.lp-pad-ghost svg { display: block; width: 100%; height: 100%; }
+.lp-pad-ghost b { position: absolute; top: 4px; right: 6px; font-size: 12px; color: #111; background: var(--accent); border-radius: 8px; padding: 0 5px; }
+.lp-new { grid-column: 1 / -1; padding: 16px; text-align: center; color: #888; font-size: 13px; border: 1px dashed #444; border-radius: 6px; }
+.lp-new.drop { color: #fff; border-color: #6fb3e8; background: #24425c; }
+.lp-grid .pad.off { background: #171717; border-style: dashed; }
+.lp-grid .pad.off svg { filter: grayscale(1); opacity: .35; }
+#fRole { display: none; }   /* its drawings (roleBar) choose it */
+/* Parts' form is Search's: its fields fill their cells; the search box gives way to the drawings, ✕ and ?. */
+#pane-parts .search-filters select, #pane-parts .search-filters input[type=number] { width: 100%; max-width: none; }
+#pane-parts .search-controls #fText { flex: 1 1 60px; min-width: 0; }
+#pane-parts .search-controls > button { flex: 0 0 auto; }
+.family-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+#roleBar { flex-wrap: nowrap; flex: 0 0 auto; margin: 0; }
+.family-bar button { width: 36px; height: 34px; padding: 5px; color: #aaa; }
+.family-bar button svg { display: block; width: 100%; height: 100%; }
+.family-bar button:hover { color: #fff; }
+.family-bar button.on { color: #111; background: var(--accent); border-color: var(--accent); }
+.lp-explore { margin-top: 12px; border: 1px dashed #444; border-radius: 6px; }
+.lp-explore.drop { border-color: #6fb3e8; background: #24425c; }
+.lp-explore-empty { padding: 16px; text-align: center; color: #888; font-size: 13px; }
+.lp-explore-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 6px 8px; font-size: 13px; }
+.lp-explore-head[hidden] { display: none; }
+.lp-explore-name { flex: 1 1 130px; min-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ddd; background: none; border: 0; padding: 0; text-align: left; }
+.lp-explore-name:hover { color: var(--accent); text-decoration: underline; }
+.lp-explore-take { flex: 0 0 auto; padding: 5px 10px; color: #111; background: var(--accent); border-radius: 5px; font-weight: 600; cursor: grab; touch-action: none; user-select: none; }
+.lp-explore-take.off { color: #777; background: #2a2a2a; cursor: default; }
+.lp-explore-lane .tl-grid { padding-bottom: 0; }
+.lp-explore-lane .tl-range { visibility: hidden; }   /* the ruler shows the selection */
+.pad-bar { font: 11px Consolas, monospace; color: #666; text-align: center; cursor: pointer; }
+.pad-bar:hover { color: #fff; }
+/* The chords of each bar, over the pads: a row of their own, under the bar numbers. */
+.chord-label { font-size: 12px; color: #888; align-self: center; }
+.pad-chord { font: 600 12px Consolas, monospace; color: #c9b8f0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+/* Phrases of 4 bars: a wider gap before each, after the first (the pads and their numbers). */
+.lp-grid .phrase { margin-left: 8px; }
+/* The bar playing, seen at a glance (even among selected pads, ringed in yellow): its number on a
+   yellow tab, its chords bright, and every pad of it lit, with a white ring and a glow. */
+.pad-bar.now { color: #111; background: var(--accent); border-radius: 4px; font-weight: 700; }
+.pad-chord.now { color: #fff; }
+/* Off: nearly the background. On: a lit dark pad, its notes in the app's colours. */
+.pad { height: 36px; border-radius: 6px; background: #171717; border: 1px solid #262626; cursor: pointer; transition: filter .08s, box-shadow .08s; }
+.pad:hover { border-color: #555; }
+.pad.on { background: #2e2e2e; border-color: #4a4a4a; }
+.pad.now { border-color: #fff; box-shadow: inset 0 0 0 1px #fff, 0 0 12px 2px rgba(255, 255, 255, 0.35); }
+.pad.now:not(.on) { background-color: #2c2c2c; }
+.pad.on.now { background-color: #4a4a4a; filter: brightness(1.35); }
+/* what the pad plays, its notes drawn on it (none where its loop is silent) */
+.pad { overflow: hidden; }
+.pad svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+/* the send's progress, on the card's line before its buttons: it takes the room left and is
+   cut with "…" rather than pushing them */
+#compose .compose-status { flex: 1 1 0; min-width: 0; margin-right: 8px; font-size: 13px; color: #9fd8a8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+button.primary { background: var(--accent); color: #111; border-color: var(--accent); font-weight: 600; }
+button.primary:hover { background: #ffd56a; }
+#access { font-size: 11px; white-space: nowrap; flex: 0 0 auto; }
+.chcards { display: flex; flex-direction: column; gap: 6px; }
+.chcard { display: grid; grid-template-columns: auto auto 1fr; gap: 4px 8px; align-items: center; padding: 6px 8px; background: #191919; border: 1px solid var(--line); border-radius: 6px; transition: background .3s; }
+.chcard.playing { border-color: var(--accent); background: #211e16; }
+.chcard.flash { background: #3a3220; }
+.chcard .chplay { width: 30px; padding: 2px 0; }
+.chcard .chtext { display: flex; flex-direction: column; min-width: 0; }
+.chcard .chtext b { font-weight: 600; color: #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chcard .chtext span { color: #888; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chcard .mini { grid-column: 1 / -1; position: relative; height: 24px; background: #1f1f1f; border-radius: 3px; cursor: pointer; overflow: hidden; }
+.chcard .mini canvas { width: 100%; height: 100%; display: block; }
+.cursor { position: absolute; top: 0; bottom: 0; width: 2px; left: 0; background: #e0402a; display: none; pointer-events: none; }
+.chcard.playing .cursor, .vt-row.playing .cursor { display: block; }
+
+/* part search results: a card per part, ▶ on the left of two lines (instrument, file, facts
+   and loop; thumbnail) */
+/* A card: its name across, then ▶ beside a large thumbnail. All of it drags. */
+.vt-row.pr { display: grid; grid-template-columns: 36px 1fr; grid-template-rows: 20px 68px; column-gap: 8px; row-gap: 3px; align-items: center; justify-items: stretch; padding: 3px 12px 3px 8px; height: 100px; border-bottom: 1px solid #262626; cursor: grab; }
+.vt-row.pr.playing { background: #211e16; box-shadow: inset 3px 0 0 var(--accent); }
+.vt-row.pr.sel { background: #2e2818; }
+.pr-play { width: 32px; height: 32px; padding: 0; font-size: 13px; border-radius: 50%; justify-self: center; }
+.vt-row.pr.playing .pr-play { color: var(--accent); border-color: var(--accent); }
+/* the instrument stays whole, the file name gives way first */
+.pr-head { grid-column: 1 / 3; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pr-head .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+.pr-inst, .pr-file { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.pr-inst { flex: 0 0 140px; font-weight: 600; color: #eee; }
+.pr-file { flex: 1 1 0; min-width: 0; color: #888; }
+.pr-file.new-song { font-weight: 600; color: #eee; }   /* a song's first card in the list */
+body.loop-mode.parts-tab .pr-file { cursor: pointer; }
+body.loop-mode.parts-tab .pr-file:hover { color: #ddd; text-decoration: underline; }
+.pr-count { flex: 0 0 auto; font-size: 12px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.pr-fit { flex: 0 0 auto; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; padding: 0 5px; border-radius: 6px; color: #111; }
+.pr-fit:empty { display: none; }
+.pr-fit.good { background: #7fd18a; }
+.pr-fit.ok { background: #e8c25c; }
+.pr-fit.bad { background: #e0786a; }
+/* The bars of its song a card's fragment is; and, in the loop open, which row plays it. */
+.pr-bars { flex: 0 0 auto; font-size: 13px; font-weight: 600; color: #eee; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pr-bars:empty, .pr-inloop:empty { display: none; }
+.pr-inloop { flex: 0 0 auto; white-space: nowrap; font-size: 11px; color: #8fb8c8; }
+.pr-inloop.exact { color: #111; background: #5fb3e6; padding: 0 6px; border-radius: 6px; font-weight: 600; }
+.pr.in-loop { box-shadow: inset 3px 0 0 #5fb3e6; }
+/* Fill %: outlined, Fit filled, so the two read apart. */
+.pr-fill { flex: 0 0 auto; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; padding: 0 5px; border-radius: 6px; border: 1px solid; }
+.pr-fill:empty { display: none; }
+.pr-fill.good { color: #7fd18a; }
+.pr-fill.ok { color: #e8c25c; }
+.pr-fill.bad { color: #e0786a; }
+/* ★ on a card of Parts or Search: filled when its fragment is in a collection. */
+.fav-star { flex: 0 0 auto; margin-left: auto; height: 20px; width: 22px; padding: 0; font-size: 13px; line-height: 1; color: #888; background: none; border: 0; }
+.fav-star:hover { color: var(--accent); }
+.fav-star.on { color: #f0c060; }
+
+/* Favorites: a fold per collection, its fragments inside (main.js renderFavorites). */
+.fav-tools { gap: 6px; }
+.lp-source { max-width: 150px; }
+.lp-source.on { border-color: #e8c25c; color: #e8c25c; }
+.fav-sort { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #bbb; cursor: pointer; }
+.fav-text b .pr-fit { margin-left: auto; }
+.fav-body { flex: 1 1 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 2px 2px 6px; }
+.fav-empty { color: #999; font-size: 12px; margin: 8px 6px; }
+.fav-coll { border: 1px solid var(--line); border-radius: 6px; background: #121212; }
+.fav-coll.open { border-color: #3a3a3a; }
+.fav-head { display: flex; align-items: center; gap: 4px; padding: 4px 6px; }
+.fav-head button { height: 22px; min-width: 22px; padding: 0 5px; font-size: 11px; }
+.fav-head .fav-toggle { background: none; border: 0; color: #bbb; }
+.fav-name { cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; color: #eee; }
+.fav-n { font-size: 11px; color: #111; background: #888; border-radius: 8px; padding: 0 6px; }
+.fav-del.confirm { background: #c0392b; border-color: #c0392b; color: #fff; }
+.fav-items { display: flex; flex-direction: column; gap: 3px; padding: 0 6px 6px; }
+.fav-item { display: grid; grid-template-columns: 26px minmax(80px, 1.2fr) 22px minmax(0, 2fr) 22px; gap: 6px; align-items: center; padding: 4px; border-radius: 4px; background: #1b1b1b; cursor: grab; }
+.fav-item:hover { background: #222; }
+.fav-item.playing { box-shadow: inset 3px 0 var(--accent); }
+.fav-item button { height: 22px; width: 22px; padding: 0; font-size: 11px; }
+.fav-notes { width: 100%; height: 36px; background: #0b0b0b; border-radius: 3px; display: block; }
+.fav-icon { color: #b9b9b9; }
+.fav-icon svg { display: block; width: 22px; height: 22px; }
+.fav-text { min-width: 0; display: flex; flex-direction: column; }
+.fav-text b { font-size: 12px; color: #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+.fav-text b.fav-title { cursor: text; }
+.fav-text b.fav-title:hover { text-decoration: underline dotted #888; }
+.fav-name-edit { font-family: inherit; font-size: 12px; font-weight: 600; color: #fff; background: #111; border: 1px solid var(--accent); border-radius: 3px; padding: 1px 4px; min-width: 0; width: 100%; box-sizing: border-box; }
+.fav-text b .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+.fav-text small { font-size: 11px; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#favBody.dragging, #favBody.dragging * { cursor: grabbing !important; }
+.fav-menu { max-height: 60vh; overflow-y: auto; }
+.fav-menu-title { padding: 4px 10px 6px; font-size: 12px; color: #f0c060; border-bottom: 1px solid #333; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+/* first run: in place of the empty file table */
+.empty { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; background: #0e0e0e; border: 1px solid var(--line); border-radius: 6px; }
+.empty.expired { margin: 40px auto; max-width: 520px; }
+/* Live library summary: ranked from the current loop with the same Fill measures. */
+.summary-pane { min-height: 0; color: #b8b8b8; font-size: 13px; }
+.summary-tools { flex-wrap: wrap; }
+.summary-body { flex: 1 1 0; min-height: 0; overflow-y: auto; padding-right: 4px; }
+/* The instruments, one a line: #, name, how many fragments fit (most first), ＋ Add. */
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table th { position: sticky; top: 0; z-index: 1; background: var(--bg); color: #8a8a8a; font-weight: normal; text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+.summary-table td { padding: 3px 8px; border-bottom: 1px solid #262626; color: #ddd; }
+.summary-table tr:hover td { background: #202020; }
+.summary-table .num { width: 1%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.summary-table td.num:first-child { color: #777; }
+.summary-table .summary-add { width: 1%; text-align: right; white-space: nowrap; }
+.summary-table .summary-icon { width: 1%; padding: 2px 4px; color: #b9b9b9; }
+.summary-icon svg { display: block; width: 22px; height: 22px; }
+#summaryRoleBar { flex-wrap: nowrap; flex: 0 0 auto; margin: 0; }
+/* Fill results' instruments, as Summary's table: ☰ List opens one's fragments in its tab, ＋ Add puts it in and opens it */
+.fill-instruments { margin-top: 6px; }
+.fill-instruments [data-fill-list] { color: #ccc; border-color: #3a3a3a; background: #222; }
+.fill-result-playing { color: var(--accent); font-size: 11px; }
+/* an instrument's tab: its drawing before its name */
+.fill-tab-icon { display: inline-block; width: 15px; height: 15px; margin-right: 5px; vertical-align: -3px; }
+.fill-tab-icon svg { display: block; width: 100%; height: 100%; }
+/* The instrument's drawing: before a loop row's name, and on a ▶▶ playlist strip (the one sounding). */
+.lp-icon { flex: 0 0 auto; width: 16px; height: 16px; margin-right: 2px; color: #bbb; }
+.lp-icon svg, .chain-strip-icon svg { display: block; width: 100%; height: 100%; }
+.chain-strip-icon { flex: 0 0 auto; width: 16px; height: 16px; margin: 0 5px 0 2px; color: var(--accent); }
+.summary-add button { height: 26px; padding: 0 10px; color: var(--accent); border-color: #5a4c26; background: #2e2a1e; }
+.summary-empty { padding: 18px 5px; text-align: center; color: #999; line-height: 1.5; }
+/* "?" beside Analyse, and the window it opens */
+.help-btn { width: 28px; padding: 0; border-radius: 50%; font-weight: 600; color: #bbb; }
+.help-dlg, .search-help-dlg { background: #1b1b1b; color: #b8b8b8; border: 1px solid #444; border-radius: 10px; padding: 18px 22px; line-height: 1.5; font-size: 13px; }
+.help-dlg { max-width: 520px; }
+.index-ask-dlg { width: min(460px, calc(100vw - 32px)); }
+.index-ask-buttons { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 12px; }
+/* Fill details, a tab of the left panel: it scrolls on its own, the grids as wide as the panel. */
+.fill-pane { color: #b8b8b8; font-size: 13px; line-height: 1.45; }
+.fill-pane-about { font-size: 12px; margin: 0 2px 4px; }
+.fill-pane-about summary { cursor: pointer; color: #b6d2dd; }
+.fill-pane-about p { margin: 4px 0; }
+.fill-empty { padding: 12px 4px; }
+.fill-empty[hidden] { display: none; }
+.fill-details-body { flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+.fill-details-group { border-top: 1px solid #444; padding-top: 10px; margin-top: 10px; }
+.fill-details-group:first-child { border-top: 0; margin-top: 0; padding-top: 4px; }
+.fill-fingerprint-context > summary { cursor: pointer; }
+.fill-details-item { margin: 8px 0; padding: 8px; background: #262626; border-radius: 5px; }
+/* ▶, the name (it wraps if the panel is narrow), and the icons together on the right. */
+.fill-details-item-head { display: flex; align-items: center; gap: 8px; }
+.fill-details-item-head > strong { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; }
+/* its file, role and bars right after its name, on the same line (the colour and size it had under it) */
+.fill-details-item-head > .fill-item-meta { flex: 1 1 0; min-width: 0; text-align: left; }
+.fill-details-item-head [data-fill-listen] { flex: none; }
+.fill-details-item-head [data-fill-listen].on { color: #111; background: var(--accent); border-color: var(--accent); }
+.fill-actions { display: inline-flex; flex: none; gap: 4px; margin-left: auto; }
+.fill-details-item-head .fill-take { height: 26px; min-width: 30px; padding: 0 8px; font-size: 14px; line-height: 1; }
+.fill-details-item-head .fill-take:not(:disabled) { color: var(--accent); border-color: #5a4c26; background: #2e2a1e; }
+.fill-details-item-head .fill-take:disabled { opacity: .6; }
+/* The calculator: the proposal's calculations, folded below its grid. */
+.fill-calc { flex: none; height: 26px; min-width: 30px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; }
+.calc-icon { display: block; }
+.fill-calc.on { color: #111; background: #b6d2dd; border-color: #b6d2dd; }
+/* ▶▶: fixed over Fill details' list, as Parts' and Search's tools; what sounds, on the line under it. */
+.fill-chain-bar[hidden], .fill-chain-status[hidden] { display: none; }
+#pane-fill .fill-chain-bar { flex-wrap: wrap; row-gap: 4px; }
+#chainMark.on { color: #111; background: var(--accent); border-color: var(--accent); }
+/* ▶▶ playing while another tab is open: its row's playlist, over the tabs. */
+.chain-strips { flex: 0 1 auto; max-height: 35vh; overflow-y: auto; }
+.chain-strips[hidden] { display: none; }
+.chain-strip { display: flex; align-items: center; gap: 1px; margin: 0 0 6px; padding: 4px 6px; overflow-x: auto; background: #2b2718; border: 1px solid #5a4c26; border-radius: 6px; }
+.chain-strip-text { flex: 1 1 100px; min-width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent); font-size: 12px; }
+.chain-strip button { flex: 0 0 auto; height: 26px; min-width: 24px; padding: 0 4px; line-height: 1; }
+.chain-strip button.on { color: #111; background: var(--accent); border-color: var(--accent); }
+.fill-chain-bar #chainGroup { flex: 1 1 80px; min-width: 0; }
+.fill-chain-bar button { flex: 0 0 auto; height: 30px; min-width: 34px; padding: 0 9px; line-height: 1; }
+.fill-chain-bar #chainSave { margin-left: auto; }
+#chainPlay.on, #chainRepeat.on { color: #111; background: var(--accent); border-color: var(--accent); }
+.fill-chain-status { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #b6d2dd; }
+.fill-details-item.chain-now { box-shadow: inset 3px 0 0 var(--accent), 0 0 0 1px #5a4c26; background: #2b2718; }
+/* ▶▶ playing: a proposal is clicked to come in on the next pad; the one coming, dashed. */
+.fill-details-body.chain-on .fill-details-item { cursor: pointer; }
+.fill-details-body.chain-on .fill-details-item:not(.chain-now):hover { box-shadow: 0 0 0 1px #5a4c26; }
+.fill-details-item.chain-next { outline: 1px dashed var(--accent); outline-offset: -1px; }
+/* "What we have": its grid's line, with the calculator of what was compared against on the right. */
+.fill-context-head { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.fill-context-head .fill-midi-label { flex: 1 1 auto; min-width: 0; margin: 0; }
+.fill-fingerprint-context .fill-calc-box { background: #182226; border-color: #40545c; }
+.fill-calc-box { margin-top: 6px; padding: 6px 8px; background: #1f1f1f; border: 1px solid #3a3a3a; border-radius: 4px; font-size: 12px; }
+.fill-calc-box[hidden] { display: none; }
+.fill-calc-box > :first-child { margin-top: 0; }
+.fill-details-item small { display: block; text-align: right; color: #aaa; overflow-wrap: anywhere; }
+.fill-midi-label { margin-top: 6px; color: #b6d2dd; font-size: 12px; }
+.fill-midi-scroll { max-width: 100%; overflow: hidden; background: #171717; color: #bbb; }
+.fill-details-item .fill-midi-scroll { margin-top: 6px; }
+.fill-midi-grid { display: block; max-width: 100%; }
+.fill-midi-key { display: flex; flex-wrap: wrap; gap: 2px 12px; padding: 4px 6px; font-size: 11px; color: #ccc; }
+.fill-midi-key i { display: inline-block; width: 9px; height: 9px; margin-right: 4px; border-radius: 2px; vertical-align: -1px; }
+.fill-midi-grid text { fill: #aaa; font: 10px Consolas, monospace; }
+.fill-midi-grid .pitch { stroke: #303030; stroke-width: .5; }
+.fill-midi-grid .beat { stroke: #383838; stroke-width: .5; }
+.fill-midi-grid .octave, .fill-midi-grid .bar { stroke: #777; stroke-width: .7; }
+.fill-details-scores { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 5px; }
+.fill-details-scores span { white-space: nowrap; }
+.fill-fingerprint-context { margin: 8px 0 12px; padding: 10px; background: #202b30; border: 1px solid #40545c; border-radius: 5px; overflow-wrap: anywhere; }
+.fill-fingerprint-facts { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 5px; color: #bbb; }
+.fill-fingerprint-evidence { margin-top: 5px; color: #ccc; overflow-wrap: anywhere; }
+.fill-fingerprint-grid { margin-top: 5px; font-size: 12px; overflow-wrap: anywhere; }
+.fill-fingerprint-grid summary { cursor: pointer; color: #b6d2dd; }
+.fill-fingerprint-grid > div { margin: 5px 0; }
+.save-name-dlg { width: min(460px, calc(100vw - 32px)); }
+.save-name-field { display: flex; align-items: center; gap: 4px; margin: 4px 0 14px; }
+.save-name-field input { flex: 1; min-width: 0; font-size: 14px; padding: 5px 8px; }
+#saveNameExt { color: #999; }
+.help-dlg::backdrop, .search-help-dlg::backdrop { background: rgba(0, 0, 0, 0.55); }
+.midi-access-dlg { width: min(520px, calc(100vw - 32px)); }
+.midi-access-dlg #midiAccessRoot { overflow-wrap: anywhere; color: #ddd; }
+.midi-access-dlg #midiAccessError { color: #f07a7a; }
+.midi-access-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+/* The licence: its dialog, and the button left of the status (trial days, or 🔒 when over). */
+.licence-dlg { width: min(520px, calc(100vw - 32px)); }
+.licence-dlg #licenceText { color: #ddd; }
+.licence-dlg #licenceError { color: #f07a7a; }
+.licence-enter { display: flex; gap: 8px; margin: 0 0 10px; }
+.licence-enter input { flex: 1 1 auto; font-family: ui-monospace, Consolas, monospace; }
+.licence-btn { margin-right: 8px; white-space: nowrap; border-color: #5a4c26; background: #2e2a1e; color: var(--accent); }
+#licenceRemove.confirm { border-color: #8a3a3a; background: #3a1d1d; color: #f0a0a0; font-weight: 600; }
+.licence-btn.owned { border-color: #444; background: #2a2a2a; color: #9fd8a8; }
+.licence-btn.over { border-color: #7a5a20; background: #3a2c12; color: #f0b45c; font-weight: 600; }
+.help-dlg h3, .search-help-dlg h3 { margin: 0 0 10px; font-size: 16px; color: var(--accent); }
+.help-dlg p, .search-help-dlg p { margin: 0 0 10px; }
+.help-dlg ul, .search-help-dlg ul { margin: 0 0 10px; padding-left: 20px; }
+.help-dlg .dim, .search-help-dlg .dim { color: #888; font-size: 12px; }
+/* ▦ Data: the analysed catalogue as a paged table, most of the window */
+.data-dlg { width: 92vw; height: 86vh; max-width: none; max-height: none; padding: 14px 16px; background: #1b1b1b; color: #ddd; border: 1px solid #444; border-radius: 10px; font-size: 12px; }
+.data-dlg[open] { display: flex; flex-direction: column; gap: 10px; }
+.data-dlg::backdrop { background: rgba(0, 0, 0, 0.55); }
+.dv-head, .dv-foot { display: flex; align-items: center; gap: 10px; flex: none; }
+.dv-head h3 { margin: 0 6px 0 0; font-size: 16px; color: var(--accent); white-space: nowrap; }
+.dv-head .seg label { padding: 5px 12px; font-size: 13px; }
+.dv-filter { flex: 1; min-width: 0; height: 30px; }
+.dv-close { width: 32px; height: 30px; padding: 0; }
+.dv-status { flex: 0 1 420px; max-width: 420px; min-width: 0; font-size: 12px; color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dv-search-option { display: flex; align-items: center; gap: 4px; white-space: nowrap; color: #aaa; }
+.dv-search-option input { margin: 0; }
+.dv-save, .dv-restore { height: 30px; white-space: nowrap; }
+.dv-scroll { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--line); border-radius: 6px; scrollbar-width: thin; }
+.dv-table { border-collapse: collapse; font: 12px Consolas, Menlo, monospace; white-space: nowrap; }
+.dv-table thead { position: sticky; top: 0; z-index: 1; }
+.dv-col-filters th { padding: 3px 4px 5px; cursor: default; }
+.dv-col-filters input, .dv-col-filters select { width: 100%; min-width: 44px; height: 22px; box-sizing: border-box; padding: 0 4px; font: 11px Consolas, Menlo, monospace; }
+.dv-table th { background: #242424; color: #bbb; font-weight: 600; text-align: left; padding: 6px 10px; border-bottom: 1px solid #3a3a3a; cursor: pointer; user-select: none; }
+.dv-table th:hover { color: #fff; }
+/* Every row exactly 22 px (ROW_H in data-viewer.js): the rows out of sight are counted, not drawn */
+.dv-table td { height: 22px; box-sizing: border-box; padding: 0 10px; line-height: 21px; border-bottom: 1px solid #242424; max-width: 360px; overflow: hidden; text-overflow: ellipsis; color: #ccc; }
+/* Only the rows in sight are drawn: every other one by its place in the table, not in the page */
+.dv-table tr.odd td { background: #1f1f1f; }
+.dv-table tbody tr:hover td { background: #2a2a24; }
+.dv-table tbody tr.picked td { background: #4a3f1c; color: #fff; }
+.dv-preview { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; flex: none; }
+.dv-preview[hidden] { display: none; }
+.dv-play { width: 36px; height: 36px; padding: 0; font-size: 14px; border-radius: 50%; flex: none; }
+.dv-open-folder, .dv-open-tracks { flex: none; height: 36px; white-space: nowrap; }
+/* the name only as wide as its text (a long one cut with "…"); the thumbnail takes the rest, up to ➜ LUNA */
+.dv-what { flex: 0 1 auto; max-width: 40%; color: #eee; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dv-mini-box { position: relative; flex: 1 1 0; min-width: 120px; cursor: pointer; }
+/* where the selected row is heard now, as the timeline's playhead */
+.dv-playhead { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #e0402a; pointer-events: none; }
+.dv-playhead[hidden] { display: none; }
+.dv-send { flex: none; height: 36px; padding: 0 14px; color: #111; background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.dv-mini { height: 56px; background: #1f1f1f; border: 1px solid #2c2c2c; border-radius: 3px; overflow: hidden; }
+.dv-mini canvas { width: 100%; height: 100%; display: block; }
+.dv-foot { color: #999; }
+.dv-pager { display: flex; align-items: center; gap: 6px; }
+.dv-pager button { height: 28px; min-width: 32px; padding: 0 8px; }
+.dv-page { width: 64px; height: 28px; }
+.dlg-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+.dlg-actions button { height: 32px; padding: 0 18px; }
+.empty-title { font-size: 16px; font-weight: 600; color: #eee; }
+.empty p { max-width: 360px; margin: 0; color: #9a9a9a; line-height: 1.5; }
+.empty button { height: 36px; padding: 0 18px; font-size: 14px; }
+
+/* the cards say what each value is, so the list needs no column titles */
+#partBody { border-top: 1px solid var(--line); border-radius: 6px; margin-top: 4px; }
+.filters .row { margin: 0 0 8px; }
+.pr-mini { position: relative; height: 68px; cursor: pointer; background: #1f1f1f; border: 1px solid #2c2c2c; border-radius: 3px; overflow: hidden; }
+.pr-mini canvas { width: 100%; height: 100%; display: block; }
+.chips { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 11px; padding: 1px 8px; border-radius: 10px; background: #2e2a1e; border-color: #5a4c26; color: var(--accent); }
+#compose .row label { min-width: 0; }
+
+/* timeline: loop lane + bar ruler + one lane per channel, after midiGrid's ruler */
+.timeline { margin: 6px 0 4px; border: 1px solid var(--line); border-radius: 6px; background: #121212; }
+.tl-tools { display: flex; gap: 4px; align-items: center; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.tl-tools button { height: 30px; min-width: 34px; padding: 0 12px; font-size: 14px; }
+.tl-fragments { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; margin-right: 8px; color: #bbb; font-size: 12px; cursor: pointer; }
+.tl-fragments input { margin: 0; }
+/* the instruments of the part can be many: cut with "…", the tooltip has them all */
+.tl-tools .tl-zin, .tl-tools .tl-zout { font-size: 17px; font-weight: 600; padding: 0; }
+/* The Listen controls share the header toolbar. */
+#listen { display: flex; flex: 0 0 auto; flex-wrap: nowrap; min-width: 0; gap: 8px; padding: 0; background: none; border: 0; border-radius: 0; overflow: visible; }
+#listen .card-row { flex-wrap: nowrap; gap: 6px; font-size: 12px; }
+#listen .card-row > * { flex-shrink: 0; }
+#listen .card-row button, #listen .card-row select { height: 28px; font-size: 12px; padding: 0 8px; }
+#listen .card-row .big-icon { width: 30px; padding: 0; }
+#listen .card-row .grow { flex: 0 0 170px; width: 170px; }
+#listen .card .tb-lcd { font-size: 12px; padding: 4px 6px; margin-left: 0; }
+.transport-dock { display: flex; flex: 0 0 auto; align-items: center; }
+.transport-controls { display: flex; align-items: center; gap: 6px; }
+.transport-controls .tb-lcd { font-size: 12px; padding: 4px 6px; }
+.transport-controls .big-icon { width: 30px; height: 28px; padding: 0; }
+.transport-controls .big-icon svg { display: block; margin: auto; }
+.tl-tools.off { visibility: hidden; }
+/* Undo and Redo are New loop's: hidden with the song, shown in New loop even with no song open. */
+.library-toolbar .tl-undo, .library-toolbar .tl-redo { display: none; }
+body.loop-mode .library-toolbar .tl-undo, body.loop-mode .library-toolbar .tl-redo { display: inline-block; }
+body.parts-tab #timeline .tl-tools { display: none; }
+.tl-range { flex: 1; color: #9fd8a8; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-range.off { color: #999; }
+.timeline:focus { outline: 1px solid #3fae6a88; }
+.region-text { color: #9fd8a8; font-weight: 500; }
+/* One scroll box for both directions: the loop lane + ruler stick to its top and the labels to
+   its left, so they stay in view while browsing channels and bars. */
+.tl-body { overflow: scroll; max-height: max(240px, calc(100vh - 250px)); overscroll-behavior: contain; }
+/* plain rows, not a CSS grid: a sticky grid item could only stick within its own cell */
+.tl-toprow { position: sticky; top: 0; z-index: 3; display: flex; }
+.tl-rows { display: flex; }
+/* room under the last lane, so the horizontal scrollbar never covers it */
+.tl-grid { padding-bottom: 40px; }
+.tl-corner, .tl-labels { flex: 0 0 220px; width: 220px; }   /* LABEL_W in timeline.js */
+.tl-corner { position: sticky; left: 0; z-index: 1; display: flex; flex-direction: column; background: #171717; border-right: 1px solid var(--line); border-bottom: 1px solid #3a3a3a; font-size: 10px; color: #777; }
+.tl-corner span { height: 33px; line-height: 33px; padding: 0 8px; text-align: right; }   /* BAR_H in timeline.js */
+.tl-corner span:first-child { height: 11px; line-height: 11px; font-size: 9px; }   /* LOOP_H */
+/* New loop playing: its counter (beats, bar of the piece, laps) */
+.cd-beats { display: flex; align-items: center; gap: 5px; }
+.cd-beats i { width: 8px; height: 8px; border-radius: 50%; background: #333; }
+.cd-beats i.down { width: 12px; height: 12px; }
+.cd-beats i.now { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.cd-beats i.down.now { background: #e0402a; box-shadow: 0 0 8px #e0402a; }
+.cd-bar { flex: 1; font: 700 20px Consolas, monospace; color: #eee; text-align: right; }
+.cd-bar small { font-size: 12px; color: #888; font-weight: 400; }
+.cd-lap { font: 600 13px Consolas, monospace; color: #e0806f; }
+.tl-area { position: relative; touch-action: none; user-select: none; }
+.tl-area canvas { display: block; }
+.tl-range.has-region { cursor: pointer; }
+.tl-range.has-region:hover { text-decoration: underline; }
+.timeline, .tl-labels, .tl-tools { user-select: none; }
+/* Fixed width (the grid column, 180 px): a long name must never push the lanes out of view. */
+.tl-labels { position: sticky; left: 0; z-index: 2; min-width: 0; overflow: hidden; background: #171717; border-right: 1px solid var(--line); font-size: 12px; }
+.tl-labels div { scroll-margin-top: 32px; }
+/* height comes from the timeline (one lane per row, kept in step with the canvas) */
+.tl-labels div { display: flex; align-items: center; gap: 6px; padding: 0 5px; color: #999; cursor: pointer; white-space: nowrap; overflow: hidden; border-bottom: 1px solid #2c2c2c; transition: background .3s; }
+.tl-labels div:hover { background: #1e1e1e; color: #ccc; }
+.tl-labels div.on { color: #fff; background: #2e2a1e; box-shadow: inset 2px 0 0 var(--accent); }
+.tl-labels div.sounding .tl-solo { color: var(--accent); border-color: var(--accent); }
+.tl-labels div.flash { background: #4a3d1c; }
+.tl-labels .tl-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tl-labels button { font-size: 11px; padding: 0 5px; height: 22px; line-height: 20px; flex: 0 0 auto; }
+.tl-labels .tl-solo { width: 24px; padding: 0; }
+/* 🎸: a lane a part from Parts is dragged over */
+.tl-labels div.drop, .pad-name.drop { background: #24425c !important; color: #fff; outline: 1px dashed #6fb3e8; outline-offset: -1px; }
+.pad.drop { outline: 2px solid #6fb3e8; outline-offset: 1px; filter: brightness(1.15); }   /* the whole row a part would replace */
+.part-note { margin: 4px 0; padding: 5px 8px; border-radius: 6px; background: #2e2a1e; color: #e8d9a8; font-size: 12px; }
+.fill-note { margin: 4px 0; padding: 5px 8px; border-radius: 6px; background: #202b30; border: 1px solid #40545c; color: #b6d2dd; font-size: 12px; }
+.fill-note[hidden] { display: none; }
+/* Parts' notes: their text, and ✕ to close them on the right. */
+.part-note, .fill-note { display: flex; align-items: flex-start; gap: 8px; }
+.part-note[hidden] { display: none; }
+.note-text { flex: 1 1 auto; min-width: 0; }
+.note-close { flex: none; width: 20px; height: 20px; padding: 0; font-size: 11px; line-height: 1; color: inherit; background: transparent; border-color: transparent; opacity: .7; }
+.note-close:hover { opacity: 1; border-color: currentColor; }
+/* ↓ Sort when the loop has changed since Parts was sorted: sort again. */
+#sortFit.stale:not(:disabled) { color: #111; background: var(--accent); border-color: var(--accent); font-weight: 600; }
+/* 🎯 Fit to session: on, and what Parts is fitting to */
+#fitSession { white-space: nowrap; }
+#fitSession.on { color: #111; background: #6fb3e8; border-color: #6fb3e8; font-weight: 600; }
+.fit-note { display: flex; align-items: center; gap: 8px; margin: 4px 0; padding: 4px 4px 4px 8px; border-radius: 6px; background: #17222c; border: 1px solid #2f4f6a; color: #bcd8ee; font-size: 12px; }
+.fit-note[hidden] { display: none; }
+.fit-note span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fit-note button { height: 22px; width: 22px; padding: 0; font-size: 11px; }
+/* a part being dragged onto a lane: a label under the pointer */
+.part-ghost canvas { display: block; width: 260px; height: 46px; margin-bottom: 4px; border-radius: 3px; }
+.part-ghost { position: fixed; z-index: 50; pointer-events: none; padding: 4px 9px; border-radius: 5px; background: #24425c; border: 1px solid #6fb3e8; color: #fff; font-size: 12px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, .5); }
+#partBody.dragging, #partBody.dragging * { cursor: grabbing !important; }
+.tl-labels .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; opacity: .5; }
+.tl-labels div.on .dot { opacity: 1; box-shadow: 0 0 0 2px #fff3; }
+.dot.role-drums { background: #e8a33c; } .dot.role-bass { background: #6fb3e8; } .dot.role-chords { background: #b08be8; } .dot.role-melody { background: #7fd18a; }
+/* region: grey with the loop off, green with it on (as midiGrid) */
+.tl-region { position: absolute; top: 0; bottom: 0; background: rgba(150, 150, 165, 0.10); border-left: 2px solid #8a8a99; border-right: 2px solid #8a8a99; pointer-events: none; }
+.tl-region span { position: absolute; top: 0; left: 0; right: 0; height: 10px; background: #8a8a9988; color: #111; font: 600 9px "Segoe UI", sans-serif; padding: 0 5px; white-space: nowrap; overflow: hidden; line-height: 10px; }
+.tl-region.on { background: rgba(80, 190, 120, 0.18); border-color: #3fae6a; }
+.tl-region.on span { background: #3fae6a; color: #06140b; }
+.tl-head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #e0402a; pointer-events: none; left: 0; }
+
+/* log */
+#logWrap { position: relative; display: flex; flex-direction: column; min-height: 0; flex: 1 1 0; padding: 0 14px 12px; }
+/* ✕ at the log's top left, over its margin (the log's lines start right of it, so it hides none). */
+.log-close { position: absolute; top: 5px; left: 19px; z-index: 1; width: 22px; height: 22px; padding: 0; font-size: 12px; line-height: 1; color: #bbb; background: #1d1d1d; border: 1px solid #3a3a3a; border-radius: 4px; }
+.log-close:hover { color: #111; background: var(--accent); border-color: var(--accent); }
+#split-y { flex: 0 0 7px; cursor: ns-resize; touch-action: none; }
+#split-y:hover, #split-y.drag { background: var(--accent); }
+#right.log-closed #split-y { display: none; }
+.log-toggle { height: 28px; padding: 0 9px; font-size: 12px; color: #ddd; background: #292929; border-color: #444; }
+.log-toggle[aria-expanded="true"] { color: #111; background: var(--accent); border-color: var(--accent); }
+.log-toggle:hover { filter: brightness(1.1); }
+#right.log-closed #logWrap { display: none; }
+#right.log-closed #log { display: none; }
+#right.log-closed main { flex: 1 1 auto; min-height: 0; }
+#log { flex: 1 1 0; min-height: 0; overflow: auto; background: #0e0e0e; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px 18px 34px; font: 12px Consolas, Menlo, monospace; white-space: pre-wrap; }   /* room under the last line, so it is never cut */
+#log .head { color: var(--accent); margin-top: 4px; }
+#log .ok { color: #8fd18f; }
+#log .warn { color: #e6b45c; }
+#log .err { color: #f07a7a; }
+/* a table in the log (log.table): under its line, past the time, its columns aligned */
+#log .log-table { border-collapse: collapse; margin: 1px 0 4px 10ch; white-space: nowrap; }
+#log .log-table th, #log .log-table td { padding: 0 3ch 0 0; text-align: left; font-weight: normal; vertical-align: top; }
+#log .log-table th { color: #7d7d7d; border-bottom: 1px solid #2c2c2c; }
+#log .log-table .num { text-align: right; }
+#log .log-table span { display: inline-block; max-width: 56ch; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+#log .log-table tr.dim td { color: #6f6f6f; }
+
+/* The page at work (main.js working): a veil over everything with what it is doing. */
+#busy { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(12, 12, 12, 0.72); cursor: progress; }
+#busy[hidden] { display: none; }
+.busy-box { display: flex; align-items: center; gap: 12px; max-width: 80vw; padding: 14px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); font-size: 13px; }
+.busy-spin { flex: none; width: 18px; height: 18px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: busy-turn 0.8s linear infinite; }
+@keyframes busy-turn { to { transform: rotate(360deg); } }
+
+/* Rows put in another order: their name dragged up or down (loop-panel.js wireRowDrag). */
+.lp-name .pad-label { cursor: grab; }
+body.lp-row-dragging, body.lp-row-dragging * { cursor: grabbing !important; user-select: none; }
+.lp-grid .row-lifted { opacity: .35; }
+.lp-grid .row-drop-above { box-shadow: 0 -3px 0 0 var(--accent); }
+.lp-grid .row-drop-below { box-shadow: 0 3px 0 0 var(--accent); }
+
+/* The library folder: shown, not typed; Choose folder… changes it. */
+#root[readonly] { cursor: default; color: #aaa; background: #232323; }
+#root[readonly]:focus { outline: none; }
+
+/* The pattern buttons over the song explored: tried one after another on the loop's own rows. */
+.lp-play-group { display: inline-flex; gap: 2px; margin-right: 6px; }
+.lp-play-group[hidden] { display: none; }
+.lp-play { height: 26px; min-width: 34px; padding: 0 5px; font-size: 11px; letter-spacing: -1px; }
+
+/* The card that sounds (Parts, Search) counts as the Loop kit did, under its ▶: a dot a beat
+   (the first larger, the one sounding lit) and the bar of the fragment. */
+.vt-row.pr .pr-play { align-self: start; margin-top: 2px; }
+.card-count { position: absolute; left: 4px; bottom: 4px; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 2px; pointer-events: none; }
+.card-count:empty { display: none; }
+/* Parts: the instrument's drawing under ▶ (the counter takes its place while the card plays) */
+.pr-icon { position: absolute; left: 4px; bottom: 10px; width: 44px; display: flex; justify-content: center; color: #b9b9b9; pointer-events: none; }
+.pr-icon svg { width: 24px; height: 24px; }
+.vt-row.pr.playing .pr-icon { visibility: hidden; }
+.cc-beats { display: flex; align-items: center; gap: 3px; }
+.cc-beats i { width: 5px; height: 5px; border-radius: 50%; background: #3a3a3a; }
+.cc-beats i.down { width: 7px; height: 7px; }
+.cc-beats i.now { background: var(--accent); box-shadow: 0 0 4px var(--accent); }
+.cc-beats i.down.now { background: #e0402a; box-shadow: 0 0 5px #e0402a; }
+.card-count b { font: 700 11px Consolas, monospace; color: #eee; line-height: 1; }
+.card-count b small { font-size: 9px; color: #888; font-weight: 400; }
+
+/* New loop: the tabs, the loop's toolbar and the rows of bar numbers and chords stay at the top
+   while the rows scroll under them. Their heights, as they are laid out, in --stick-tabs,
+   --stick-toolbar and --stick-bars (main.js keepHeadsInView). An opaque band: the panel's colour,
+   spread over the gaps between the cells. */
+/* The tabs (Song, the files open, the loops) in a song too: what is open stays in sight. */
+#workspaceTabs { position: sticky; top: 0; z-index: 30; background: var(--panel); }
+/* Scrolled: a band of the panel's colour over them hides what passes under; at the top (not scrolled)
+   there is nothing to hide, and the band would hide the panel's top border and corners. */
+main.scrolled #workspaceTabs { box-shadow: 0 -18px 0 var(--panel); }
+main.loop-heads-flow #workspaceTabs { position: static; }
+body.loop-mode #loopToolbar { position: sticky; top: var(--stick-tabs, 0px); z-index: 29; box-shadow: 0 0 0 4px var(--panel); }
+body.loop-mode .lp-grid > .lp-count, body.loop-mode .lp-grid > .pad-bar { position: sticky; top: calc(var(--stick-tabs, 0px) + var(--stick-toolbar, 0px) + 4px); z-index: 28; align-self: stretch; display: flex; align-items: center; justify-content: center; background: var(--panel); box-shadow: 0 0 0 3px var(--panel); }
+body.loop-mode .lp-grid > .lp-count { display: grid; background: #0b0f0c; }
+body.loop-mode .lp-grid > .chord-label, body.loop-mode .lp-grid > .pad-chord { position: sticky; top: calc(var(--stick-tabs, 0px) + var(--stick-toolbar, 0px) + var(--stick-bars, 0px) + 9px); z-index: 27; align-self: stretch; display: flex; align-items: center; justify-content: center; background: var(--panel); box-shadow: 0 0 0 3px var(--panel); }
+body.loop-mode main.loop-heads-flow #workspaceTabs, body.loop-mode main.loop-heads-flow #loopToolbar,
+body.loop-mode main.loop-heads-flow .lp-grid > .lp-count, body.loop-mode main.loop-heads-flow .lp-grid > .pad-bar,
+body.loop-mode main.loop-heads-flow .lp-grid > .chord-label, body.loop-mode main.loop-heads-flow .lp-grid > .pad-chord { position: static; }
+/* (Its sticky head paints the panel behind it: the bar playing keeps its yellow tab over that.) */
+body.loop-mode .lp-grid > .pad-bar.now { background: var(--accent); color: #111; border-radius: 4px; }
+/* The sticky heads' layers stay inside the right panel, below the header. */
+main { position: relative; z-index: 0; }
