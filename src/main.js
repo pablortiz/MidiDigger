@@ -8355,7 +8355,9 @@ function openLicence() {
   $('licenceText').textContent = a.reason === 'licensed'
     ? promo
       ? `A promotional licence for ${owner} unlocks the loops until ${licence.licence.x} (${daysText(a.daysLeft)} left; licence number ${licence.licence.n}). Buy a licence to keep them after that.`
-      : `MIDI Digger ${licence.licence.v} is licensed to ${owner}. Licence number ${licence.licence.n}, issued ${licence.licence.d}. Thank you!`
+      : licence.licence.kind === 'gumroad'
+        ? `MIDI Digger is licensed to ${owner}: ${licence.licence.seats} licence${licence.licence.seats > 1 ? 's' : ''}, for up to ${licence.licence.computers} computers. Key ${licence.licence.n}${licence.licence.d ? `, bought ${licence.licence.d}` : ''}. Thank you!`
+        : `MIDI Digger ${licence.licence.v} is licensed to ${owner}. Licence number ${licence.licence.n}, issued ${licence.licence.d}. Thank you!`
     : a.keyEnded
       ? `The promotional key ended on ${a.keyEnded}. Enter a licence key to unlock the loops again.`
       : a.allowed
@@ -8411,7 +8413,7 @@ function wireLicence() {
     if (!button.classList.contains('confirm')) {
       button.classList.add('confirm');
       button.textContent = 'Yes, remove it';
-      $('licenceError').textContent = 'Remove the licence from this computer? The loops will be locked here until the key is entered again (keep your purchase email). Click "Yes, remove it" to confirm.';
+      $('licenceError').textContent = `Remove the licence from this computer? The loops will be locked here until the key is entered again (keep your purchase email)${licence.licence?.kind === 'gumroad' ? ', and entering it again counts as one more of its computers' : ''}. Click "Yes, remove it" to confirm.`;
       $('licenceError').hidden = false;
       return;
     }
@@ -8426,10 +8428,17 @@ function wireLicence() {
   });
 }
 
-/** Once LUNA answers (luna.secrets): what is kept (a kept key checked again), the trial started on a first run. */
+/**
+ * Once LUNA answers (luna.secrets): what is kept (a signed key checked again), the trial started
+ * on a first run; a Gumroad key asked about again now and then (a refund takes it away).
+ */
 async function startLicence() {
   await licence.load();
   paintLicence();
+  if (await licence.recheck()) {
+    paintLicence();
+    log.warn('The licence key is no longer valid (the purchase was refunded or the key disabled), so the loops are locked again.');
+  }
 }
 
 wireLicence();

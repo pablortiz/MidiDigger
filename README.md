@@ -15,9 +15,10 @@ shared with Universal Audio only so it can review the add-on. It is not open sou
 - **Trying it:** the add-on ships no MIDI library. Choose any folder of `.mid` files and press
   **Analyse**. The preview uses the bundled GeneralUser GS soundfont.
 - **Licence:** Files, Parts and Favorites are free. The loop features (New loop, Fill, Arrange,
-  Summary) work for a 7-day trial from the first run, then need a licence key
-  (`src/licence.js`: Ed25519-signed keys, checked offline; nothing is sent anywhere). A review
-  key can be provided on request.
+  Summary) work for a 7-day trial from the first run, then need a licence key, sold on
+  Gumroad (https://pablotab2.gumroad.com/l/gufosk; 3 computers per licence, checked with
+  Gumroad's licence API). Signed keys (Ed25519, checked offline) serve reviewers and promotions:
+  a review key can be provided on request. See `src/licence.js`.
 - Requires LUNA 3.1.1 or later (tested on Windows).
 
 A LUNA Add On, built with `@uaudio/luna-builder-sdk`, for working with a large MIDI library

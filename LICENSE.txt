@@ -9,11 +9,12 @@ MIDI Digger is licensed, not sold. By installing or using it you agree to the fo
 
 2. Loops: trial and licence. The loop features (New loop, Fill, Arrange, Summary and the
    features that work on a loop) may be tried free for 7 days from the first time MIDI Digger
-   runs on a computer. After that they need a licence key, bought from elper.es. A licence key
-   is personal: you may use it on your own computers, but you may not share, sell or publish
-   it. A key carries the buyer's email address, which MIDI Digger shows once it is activated.
-   A key that is refunded or found shared may be withdrawn in a later version. Updates of the
-   same major version (1.x) are included; a later major version may need an upgrade.
+   runs on a computer. After that they need a licence key, bought on Gumroad (elper.es). Each
+   licence bought may be used on up to 3 computers of its owner; buying several licences at
+   once gives one key for 3 computers per licence. A key is for you (or, with several licences,
+   your studio or school): you may not share, sell or publish it. MIDI Digger shows the buyer's
+   email address once a key is activated. A refunded purchase's key stops working. Updates of
+   the same major version (1.x) are included; a later major version may need an upgrade.
 
 3. Your music is yours. MIDI Digger does not claim any rights over the MIDI files you open
    with it or over the music you make with it.
@@ -30,8 +31,10 @@ MIDI Digger is licensed, not sold. By installing or using it you agree to the fo
    licences, listed in THIRD-PARTY-NOTICES.txt. This licence does not restrict your rights
    under those licences for those components.
 
-7. MIDI Digger checks a licence key on your computer, without any connection, and sends
-   nothing about you, your music, your files or your sessions anywhere.
+7. To check a licence key bought on Gumroad, MIDI Digger sends the key (and which product it
+   is for) to Gumroad when it is entered and then about once a week; once activated it also
+   works without a connection. It sends nothing about you, your music, your files or your
+   sessions anywhere.
 
 8. MIDI Digger is provided "as is", without warranty of any kind, to the extent the law
    allows. Keep a copy of your sessions. To the extent the law allows, elper.es is not liable
