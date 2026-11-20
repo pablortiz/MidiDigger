@@ -6,14 +6,14 @@ import { renderPart } from '../src/preview/render.js';
 
 describe('SoundFont row presets', () => {
   it('does not install a SoundFont when its load has been superseded', async () => {
-    const bytes = readFileSync(new URL('../sounds/GeneralUser-GS.sf2', import.meta.url));
+    const bytes = readFileSync(new URL('../sounds/GeneralUser-GS.sf3', import.meta.url));
     const engine = new SoundFontEngine();
     expect(await engine.load(bytes, 48000, 'old', () => false)).toBe(false);
     expect(engine.ready).toBe(false);
   });
 
   it('plays the exact drum kit, even when MIDI bank selection chooses another preset', async () => {
-    const bytes = readFileSync(new URL('../sounds/GeneralUser-GS.sf2', import.meta.url));
+    const bytes = readFileSync(new URL('../sounds/GeneralUser-GS.sf3', import.meta.url));
     const bank = SoundBankLoader.fromArrayBuffer(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     const kit = bank.presets.find((p) => p.name === 'Standard 2 Kit' && p.isDrum);
     const sound = { name: kit.name, program: kit.program, bankMSB: kit.bankMSB, bankLSB: kit.bankLSB, isDrum: kit.isDrum, isGMGSDrum: kit.isGMGSDrum };
@@ -35,7 +35,7 @@ describe('SoundFont row presets', () => {
   });
 
   it('renders the selected kit offline rather than the kit in the MIDI program change', async () => {
-    const bytes = readFileSync(new URL('../sounds/GeneralUser-GS.sf2', import.meta.url));
+    const bytes = readFileSync(new URL('../sounds/GeneralUser-GS.sf3', import.meta.url));
     const bank = SoundBankLoader.fromArrayBuffer(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     const kits = ['Standard 1 Kit', 'Standard 2 Kit'].map((name) => bank.presets.find((p) => p.name === name && p.isDrum));
     const info = { ppq: 480, events: [

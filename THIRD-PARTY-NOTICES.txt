@@ -25,7 +25,7 @@ licence named below; the full texts are in the files referred to.
    https://github.com/paulmillr/noble-ed25519
    Licensed under the MIT License: licenses/noble-ed25519-MIT.txt
 
-5. GeneralUser GS 2.0.3 (sounds/GeneralUser-GS.sf2)
+5. GeneralUser GS 2.0.3 (sounds/GeneralUser-GS.sf3, its samples compressed to Ogg Vorbis)
    Copyright 1997-2025 by S. Christian Collins
    http://www.schristiancollins.com
    Licence: sounds/GeneralUser-GS-LICENSE.txt

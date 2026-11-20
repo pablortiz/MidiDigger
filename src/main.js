@@ -7566,7 +7566,9 @@ async function bindSession() {
 
 // Shipped in the add-on folder, so the page reads it on Windows and on Mac alike (a page may
 // always fetch its own files). Licence: sounds/GeneralUser-GS-LICENSE.txt.
-const BUNDLED_SF2 = { url: 'sounds/GeneralUser-GS.sf2', name: 'GeneralUser GS' };
+// (SF3: the samples Ogg Vorbis compressed, 7 MB instead of 32: .dev/make-sf3.mjs. UA Universe
+// refuses packages that large.)
+const BUNDLED_SF2 = { url: 'sounds/GeneralUser-GS.sf3', name: 'GeneralUser GS' };
 const sfEngine = new SoundFontEngine();
 let sfLoading = null;
 let sfLoadVersion = 0;

@@ -8,7 +8,7 @@ MIDI Digger is licensed, not sold. By installing or using it you agree to the fo
    for as long as you like.
 
 2. Loops: trial and licence. The loop features (New loop, Fill, Arrange, Summary and the
-   features that work on a loop) may be tried free for 15 days from the first time MIDI Digger
+   features that work on a loop) may be tried free for 7 days from the first time MIDI Digger
    runs on a computer. After that they need a licence key, bought from elper.es. A licence key
    is personal: you may use it on your own computers, but you may not share, sell or publish
    it. A key carries the buyer's email address, which MIDI Digger shows once it is activated.

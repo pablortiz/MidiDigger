@@ -1,8 +1,10 @@
-GeneralUser GS 2.0.3 (sounds/GeneralUser-GS.sf2)
+GeneralUser GS 2.0.3 (sounds/GeneralUser-GS.sf3)
 Copyright 1997-2025 by S. Christian Collins
 http://www.schristiancollins.com
 
-Shipped unmodified with MIDI Digger as the sound of its preview and of the audio it renders.
+Shipped with MIDI Digger as the sound of its preview and of the audio it renders. Its instruments
+are unchanged; only its packaging is: the samples are compressed (SF3, Ogg Vorbis), as its
+licence allows ("modify the SoundFont bank or its packaging").
 The licence below is the one embedded in the SoundFont file itself.
 
 ***     License v2.0    ***

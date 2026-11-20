@@ -17,7 +17,7 @@
 
 import { verifyAsync } from '@noble/ed25519';
 
-export const TRIAL_DAYS = 15;
+export const TRIAL_DAYS = 7;
 const DAY = 864e5;
 
 /** The major version: keys for it (or a later one) unlock the loops. */
