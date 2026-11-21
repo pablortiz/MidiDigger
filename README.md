@@ -1,173 +1,128 @@
 # MIDI Digger
 
-_Copyright (c) 2026 elper.es (Pablo Ortiz). All rights reserved. This repository is private and
-shared with Universal Audio only so it can review the add-on. It is not open source: see
-`LICENSE.txt`. Third-party components keep their own licences (`THIRD-PARTY-NOTICES.txt`).
+**Turn your own MIDI library into loops, inside LUNA.**
 
-## For reviewers
+MIDI Digger reads the MIDI files you already have, cuts every instrument into musical
+fragments, and finds the ones that fit what you are playing: same harmony, same groove.
+Build a loop in minutes, audition alternatives instrument by instrument, and send it to
+your LUNA session as MIDI tracks or rendered audio.
 
-- **Install without building:** the repository already holds a built copy (`dist/`,
-  `vendor/luna.global.js`). Copy the folder, without `.git`, to LUNA's Add Ons folder, or pack it
-  with `ua-builder pack` (or `npm run pack`).
-- **Build from source:** `npm install --ignore-scripts`, then `npm test` and `npm run build`.
-  `package.json` expects the LUNA Builder SDK in a folder `../LUNA Builder SDK` beside this one
-  (`file:` dependency); change that path to wherever your SDK copy is.
-- **Trying it:** the add-on ships no MIDI library. Choose any folder of `.mid` files and press
-  **Analyse**. The preview uses the bundled GeneralUser GS soundfont.
-- **Licence:** Files, Parts and Favorites are free. The loop features (New loop, Fill, Arrange,
-  Summary) work for a 7-day trial from the first run, then need a licence key, sold on
-  Gumroad (https://pablotab2.gumroad.com/l/gufosk; 3 computers per licence, checked with
-  Gumroad's licence API). Signed keys (Ed25519, checked offline) serve reviewers and promotions:
-  a review key can be provided on request. See `src/licence.js`.
-- Requires LUNA 3.1.1 or later (tested on Windows).
+![MIDI Digger: a loop built from fragments of different songs](https://raw.githubusercontent.com/pablortiz/MidiDigger/main/docs/images/loop.png)
 
-A LUNA Add On, built with `@uaudio/luna-builder-sdk`, for working with a large MIDI library
-inside LUNA: browse it, search a catalogue of **parts** (one channel of one file) by role,
-instrument, tempo, meter, key and repeating loops, listen to a part, a bar range or a loop,
-and bring it to the session as a new instrument track.
+## What it does
 
-In New loop's Explore timeline, the **Fragments** checkbox shows or hides fragment
-regions without changing the notes or the selected loop. Hidden fragments cannot be clicked.
-Creating a new loop keeps the current library tab and its Parts results in place.
-Click track names to select or deselect several tracks for the same time range; the selected
-tracks play together, alone or over the loop. The latter needs a free MIDI channel per pitched
-track; if there are not enough, remove loop rows or select fewer tracks. A track's play button
-selects and plays that track alone. Dragging multiple selected tracks onto a pad
-creates new rows starting at that bar; drums reuse the drums row, replacing its affected bars.
-The loop expands if necessary (up to 32 bars); selections that cannot fit are rejected.
-Tracks with no notes in the selected range are skipped and reported in the log.
-**Loop from song** rearranges and concatenates fragments from the explored song, with changing
-rests on repeated presses. Pitched fragments can come from different song tracks and use the
-receiving row's instrument; drums remain separate. Candidates are ranked with Fill's score,
-using the measures available in the current musical context. Locked rows stay unchanged and
-their source tracks are not reused.
-After **Fill**, open the **Fill details** tab (left panel) to see the chosen fragment's combined score and the available
-Fit, Length, Dynamics, Activity and Role measures with their effective weights. Missing measures
-are marked unavailable and the other weights are redistributed. The comparison context shows the
-Fit target (the loop or 🎯 LUNA session), the loop rows before Fill, duration, dynamics, activity,
-role reference, key, chords and groove where available. Each candidate's 🧮 shows its corresponding
-indexed facts and the Fit evidence used. Expand the note and rhythm grids to inspect their
-per-bar steps; pitched candidate grids are shown transposed when they were compared that way.
-For selected pads, Fit uses the loop with those pads removed, while dynamics and activity use the
-original selected row and bars; earlier replacement choices can add a separate clash check.
-Up to 49 eligible alternatives
-from the same decision are shown; ▶ stops loop playback and plays the original fragment alone at
-the loop tempo through the global Sound, without changing the loop. Leaving the tab stops the preview.
-Each result also shows a MIDI piano roll of the fragment as auditioned in the loop key, before
-Fill's note adaptation; unavailable source files are reported in place of the grid.
-Scores reflect the selection before note adaptation, and alternatives may not
-have been tried or readable. **Fill details** shows the most recent decision for that loop tab;
-it is a snapshot, not a recalculation after later edits. The coloured Parts percentage is Fit only.
-The **Summary** tab ranks the analysed library against the open loop using the same live Fill
-calculation. It groups eligible fragments by instrument, showing the best score and the number
-with at least 70% Fill, and reports the strongest bar lengths and tempo ranges. The bar filter
-applies to the counts as well as the results. Summary always compares against the whole loop and
-offers unused instruments to add as new rows, regardless of selected pads. Every result
-can be auditioned. Adding one keeps Summary open and recalculates it against the updated loop;
-the selected fragment's dimensions and evidence remain available in its Fill details tab. The
-count covers all eligible indexed fragments with measurable Fit, not just the
-displayed best results. Summary is recalculated rather than based on votes or previous choices.
-Active Fill playlists advance together at each loop boundary, regardless of fragment length; each
-returns to its first proposal after its last. Locked rows and playlists set to repeat stay on the
-current proposal. Short fragments repeat within the loop; longer ones are cut to fit. Manual
-playlist controls still change on the next beat or bar. Save chain lays the proposals heard
-through a boundary in order using their original lengths, rather than recording the loop playback.
-The pattern buttons first arrange the existing fragments, then try compatible library alternatives
-using Fill's score: 45% fit, 25% length, 15% dynamics, 5% activity and 10% role. When a measure is
-unavailable, the available measures are reweighted. Locked rows stay unchanged in both steps; when
-no suitable replacement is found, the existing fragment remains in the arrangement.
-**Align left** and **Align right** move the selected pads' notes together to the start or end of
-the selection, preserving their audible rhythm and timing between tracks. Swing and velocity
-settings are rendered into the notes; alignment can be undone. Turn selected pads on first, and
-select the whole duration of notes crossing the selection's boundaries. Alignment is refused
-without changing the loop if it cannot preserve the notes, including when a selected track has
-fragments in different source keys.
-Select one or more loop pads and press **Delete** to empty them; undo restores them.
-Use **Hide tools** at the bottom right of the loop toolbar to make more room for the pads;
-**Show tools** restores the buttons. Tempo, meter, key, length and LUNA sync remain available.
+- **Dig your library.** Point it at a folder of `.mid` files. Every channel of every file
+  becomes a part (drums, bass, chords or melody) with its key, tempo and meter, cut into
+  loops and phrases you can search and play.
+- **Find what fits.** Every fragment is scored against what is playing, note against note and
+  hit against hit, and shown green, amber or red.
+- **Build loops fast.** Drop parts on the pads, or press **✨ Fill**: it proposes the
+  instruments and fragments that fit your loop best. **Arrange** lays out build-ups,
+  breakdowns and more.
+- **Audition alternatives.** **▶▶** plays each instrument's best proposals one after another,
+  in time with the loop; keep the one you like.
+- **Fit to your session.** **🎯 Fit to session** reads the MIDI and audio tracks of your LUNA
+  session and ranks fragments by how well they go with them.
+- **Send to LUNA.** As MIDI on new tracks, or as audio rendered with the built-in General MIDI
+  soundfont. Export MIDI files too.
 
-In New loop, press **♪** on a row to choose its sound: the global **Sound** setting, a
-searchable preset from the current SoundFont (with a GM program-family filter), or an existing LUNA instrument track. SoundFont
-drum rows list drum kits; changing the sound does not change the original instrument used by
-Fill and Arrange. A LUNA track can be assigned to only one row, and its plugin and preset are
-not changed. A track used by default-sound rows cannot also be assigned explicitly. Sound changes are undoable and saved with the loop. If the SoundFont or the
-original session/track is unavailable, the row is silent and the log explains how to choose
-it again. LUNA track assignments send MIDI live and can affect that track's MIDI controllers.
-Audio export uses the selected SoundFont presets, but cannot render rows assigned to LUNA
-tracks: choose MIDI-only export or change those rows to SoundFont. MIDI export does not embed
-SoundFonts or plugins; the receiving instrument determines its sound.
+![Parts: fragments of your library ranked by how well they fit](https://raw.githubusercontent.com/pablortiz/MidiDigger/main/docs/images/parts.png)
 
-Everything runs in the add-on page and ships as one `.lunaaddon`; nothing else needs
-installing. Data lives in the page's IndexedDB, named after the add-on id.
+![Fill results: the instruments that fit the loop, and their best fragments](https://raw.githubusercontent.com/pablortiz/MidiDigger/main/docs/images/fill.png)
 
-| Path | Purpose |
+## Free and paid
+
+| | |
 |---|---|
-| `manifest.json` | What LUNA reads: id, name, window size, entry page. See the SDK's `docs/MANIFEST.md`. |
-| `index.html` | The page: `vendor/luna.global.js`, then `dist/main.js` and `dist/main.css`. |
-| `src/midi/` | `parser.js` (SMF, tempo and meter maps), `parts.js` (notes of a part, bar ranges, play timelines), `features.js` (role, density, loop detection, the catalogue record), `gm.js`. No DOM, no LUNA. |
-| `src/library/` | `scanner.js` (walk a folder with `luna.gui.listFiles`), `reader.js` (authorised folder, `file://` or helper server), `store.js` (IndexedDB), `catalog.js` (typed-column search), `indexer.js` (background analysis, pausable). |
-| `src/preview/player.js` | Web Audio preview: all or some channels, silences skipped, looping ranges. |
-| `src/luna/bridge.js` | Everything that talks to LUNA: parts to new tracks, whole-file import, instrument slots. |
-| `src/ui/` | Panels: virtual table, divider, selected-file panel, instrument tools, log. |
-| `src/main.js` | Entry point: wires it all. `globalThis.MidiLibraryDebug` exposes live state for the web inspector. |
-| `dist/` | What `npm run build` makes from `src/`: one classic script (Windows loads add-ons from `file://`, where module scripts are blocked). Not hand-edited. |
-| `tests/` | Vitest: MIDI and library logic, and the LUNA side against `Luna.MockEngine`. |
-| `.dev/midi-server.mjs` | Development only (not packed): serves `.mid` bytes to a plain browser, where `file://` is refused. |
+| **Free, always** | Browse and analyse your library, search parts, preview, favourites, send parts to LUNA |
+| **7-day trial, then a licence** | The loops: New loop, Fill, Arrange, Summary, playlists, Fit to session over a loop |
 
-```sh
-npm install --ignore-scripts   # the file: SDK dependency would otherwise try to rebuild itself
-npm test                       # no LUNA needed
-npm run build                  # src/ -> dist/
-npm run install-addon          # build, then copy into LUNA's Add Ons folder (reopen the window)
-npm run pack                   # build, then the .lunaaddon file to share
-```
+**[Buy a licence on Gumroad](https://pablotab2.gumroad.com/l/gufosk)**: one licence works on up to 3 of
+your computers. Updates of version 1 are included. MIDI Digger ships **no MIDI files**: it
+works with your own library.
 
-On Windows, `iniciar-servidor-midi.bat` starts the optional helper for `D:\midi`.
-Keep its window open while using it and press Ctrl+C to stop it. The helper is
-for development and is not included in the add-on; other local web pages can
-request supported files under that folder while it is running.
+## Install
 
-### Direct access to the MIDI library
+1. Download `MIDI-Digger.lunaaddon` from the [latest release](https://github.com/pablortiz/MidiDigger/releases/latest)
+   (or get it from LUNA's Discover).
+2. Double-click it, then open LUNA → **Add Ons → MIDI Digger**.
+3. Choose your MIDI folder and press **Analyse**.
 
-After choosing or restoring a library, press **Allow MIDI access** and select the
-exact folder shown in Files. Confirm its full path; the browser provides only the
-selected folder's name, not its full path. Where saved fingerprints are available,
-MIDI Digger also checks a sample against the existing analysis. This does not
-re-scan or erase the catalogue. A missing or changed sample may prevent verification;
-the existing library is left untouched if verification fails.
+Requires LUNA 3.1.1 or later (tested on Windows). The licence key is checked with Gumroad
+once when you enter it; after that MIDI Digger works offline. Nothing about your music or
+your files leaves your computer.
 
-The folder reference is saved in IndexedDB when the browser supports it. After
-restarting LUNA, press **Reconnect MIDI access** and grant permission again if
-requested. When the saved library cannot be read at startup, a dialog offers this
-action; it can be dismissed and the toolbar button used later. If storage was cleared, choose the folder again. If the browser does
-not support folder access, `file://` and the optional helper remain alternatives.
-Files outside the library, including soundfonts, continue to use those alternatives.
-Saved loops (`.json`) and saved analyses (`.mdig`) are selected and read
-directly through the file picker, without the helper server. Older JSON analysis
-backups cannot be restored; analyse the library again and save a `.mdig` instead.
+## How it works
 
-**Analyse** calculates Search gesture scores as each MIDI is analysed, so matching
-fragments become searchable during the run. Previously analysed files without scores
-are read again; their saved fingerprint and fragment positions are checked before
-updating the catalogue. When an older analysis has no fingerprint, MIDI Digger warns
-that unchanged contents cannot be verified. Compact scores are stored without MIDI
-events; a backup with events remains optional.
-Parts lists analysed parts even before a query, with text, role, instrument,
-gesture, length, meter, key, file BPM, energy and repetition filters. It can sort by
-Fit, Fill %, tempo, fragment length or a shuffled order. Without a comparison target,
-Fit and Fill % use file order or gesture score.
-Note previews and playback read the original MIDI on demand.
-The red line follows the playing fragment; with Fragments off, click its note preview to play from that point.
-Over a loop, the loop repeats while a longer fragment plays in full. A new selection or
-seek joins at the next bar; unusually long combined cycles are reported instead of rendered.
-The library analysis starts only when **Analyse** is pressed, not when access is
-granted, restored, or a folder is listed. Pause remains available. Opening an individual
-file can analyse that file on demand. Without direct access, reconnect it or use the
-optional helper before starting analysis.
+### 1. Analysing files and extracting fragments
 
-## What was measured in LUNA 3.1.1 on Windows
+**Per file**
+- Split by MIDI channel. Each channel becomes a part with a role: drums (channel 10), bass,
+  chords or melody.
+- Key: the key signature written in the file; when there is none (or it is the default
+  C major), Krumhansl-Kessler correlation over the 24 keys.
+- Tempo and meter from the file, any meter: bars follow the file's time-signature changes.
 
-- `fetch(file://…)` of library files works from the add-on page.
-- `luna.gui.listFiles` only lists folders chosen through LUNA's dialog (others answer
-  `uasrv.not_permitted`), and returns non-ASCII folder names with `?`, which then fail.
-- `setPlugin({ presetUid })` does not apply the preset: SFLT loads without its bank.
+**Fragments**
+- Each part is cut at its silences: every group of notes between rests is a candidate fragment.
+- Loops are found with a bar-by-bar self-similarity matrix (every bar compared with every
+  other). Repeated bars collapse into one loop with a repeat count.
+- Duplicates within a part count once. Fragments of 1 to 16 bars are kept.
+
+**Saving the analysis.** *Data → Save analysis* stores every fragment with its role, length,
+tempo, key, and the note and hit summaries the fit measures are worked out from. Ticking
+*Include MIDI events* also stores each fragment's notes, volume, pan, sustain, pitch bend and
+tempo. *Restore* brings a saved analysis back without analysing again.
+
+### 2. How a fragment is scored against the music
+
+Each candidate is compared with what is playing on 9 measures, each multiplied by its weight,
+plus a fixed value. The result goes through a logistic function: a 0 to 1 chance that the
+fragment was written for that music. Weights for bass, chords and melody; drums use rhythm only.
+
+| Measure | What it measures | Weight | Drums |
+|---|---|---:|---:|
+| clash | semitone clashes (up or down) when both sound | −3.52 | – |
+| chroma | same pitch classes, bar by bar | +4.52 | – |
+| harmonyCover | fragment notes on the context's notes | +0.15 | – |
+| hit | fragment hits landing with the context's (±1) | +0.08 | +0.72 |
+| cover | context hits the fragment also plays | +0.06 | +1.04 |
+| beat | same split of the beat (straight / swing / triplets) | +2.88 | +3.69 |
+| accent | same places of the bar struck | −1.09 | −1.79 |
+| bar | moving together, bar by bar | +2.45 | +1.82 |
+| density | how many more hits per bar (in octaves) | +0.23 | +0.14 |
+| fixed value | | −4.32 | −3.90 |
+
+The weights were learned by logistic regression from 3,000 songs: real combinations (parts
+that were written together) against random ones. On songs it had not seen, it tells them
+apart with an AUC of 0.86 for parts with notes and 0.73 for drums.
+
+### 3. How Fill chooses
+
+Each candidate gets five sub-scores from 0 to 1, combined with fixed weights:
+
+**Fill % = 45 % Fit + 25 % Length + 15 % Dynamics + 5 % Activity + 10 % Role**
+
+| Part | Weight | What it measures |
+|---|---:|---|
+| Fit | 45 % | the 9 measures above: notes and rhythm against what the loop plays |
+| Length | 25 % | how much of the target bars the fragment fills |
+| Dynamics | 15 % | how close its note velocities are to the loop's |
+| Activity | 5 % | how close its note density is to the loop's |
+| Role | 10 % | how often this instrument goes with the loop's instruments, learned from your analysed songs |
+
+The best-scoring fragments of each instrument become its playlist (▶▶), so you can hear the
+alternatives in turn and keep the one you like.
+
+### 4. Where this could go
+
+The current model is a fast first filter over the whole library. A second stage could refine
+the results: a transformer that re-scores only the top ~200 candidates, with both scores side
+by side. That is beyond this version of the add-on, but the model is trained, tested and ready
+to explore.
+
+## Licence
+
+© 2026 elper.es (Pablo Ortiz). All rights reserved. See [LICENSE.txt](LICENSE.txt) and
+[THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt). MIDI Digger is not made, tested or endorsed
+by Universal Audio, Inc. Developers: see [DEVELOPMENT.md](DEVELOPMENT.md).
