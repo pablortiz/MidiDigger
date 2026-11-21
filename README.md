@@ -114,13 +114,6 @@ Each candidate gets five sub-scores from 0 to 1, combined with fixed weights:
 The best-scoring fragments of each instrument become its playlist (▶▶), so you can hear the
 alternatives in turn and keep the one you like.
 
-### 4. Where this could go
-
-The current model is a fast first filter over the whole library. A second stage could refine
-the results: a transformer that re-scores only the top ~200 candidates, with both scores side
-by side. That is beyond this version of the add-on, but the model is trained, tested and ready
-to explore.
-
 ## Licence
 
 © 2026 elper.es (Pablo Ortiz). All rights reserved. See [LICENSE.txt](LICENSE.txt) and
