@@ -52,7 +52,9 @@ describe('checkKey', () => {
     const [head, sig] = key.split('.');
     const forged = `MD1-${b64u(Buffer.from(JSON.stringify({ p: 'mididigger', v: 9, e: 'thief@example.com', d: '2026-11-20', n: 'x' })))}.${sig}`;
     await expect(checkKey(forged, PUB)).rejects.toThrow(/not valid/);
-    await expect(checkKey(`${head}.${sig.slice(0, -2)}AA`, PUB)).rejects.toThrow(/not valid/);
+    // One character of the signature changed (in the middle: the last ones carry spare bits).
+    const flipped = sig.slice(0, 20) + (sig[20] === 'A' ? 'B' : 'A') + sig.slice(21);
+    await expect(checkKey(`${head}.${flipped}`, PUB)).rejects.toThrow(/not valid/);
     await expect(checkKey(makeKey({ p: 'other' }), PUB)).rejects.toThrow(/not valid/);
     await expect(checkKey(makeKey({ v: MAJOR - 1 }), PUB)).rejects.toThrow(/upgrade key/);
     expect((await checkKey(makeKey({ v: MAJOR + 1 }), PUB)).v).toBe(MAJOR + 1);   // a later version's key works too

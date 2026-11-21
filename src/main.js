@@ -7814,8 +7814,26 @@ const soundPicker = new LoopSoundPicker($('loopSoundDlg'), {
   },
 });
 
+// A soundfont chosen with the browser's own file picker (…): read through its file handle,
+// which needs no route to the disk (file:// is blocked in LUNA, and it is usually outside the
+// MIDI library). Its handle is kept in IndexedDB as the library folder's is; sf2Path() is then
+// "browser-file/<name>". `pickedSoundFont`: the bytes just chosen, so they are not read twice.
+const PICKED_SF = 'browser-file/';
+let pickedSoundFont = null;   // { path, bytes }
+
+async function readPickedSoundFont(path) {
+  if (pickedSoundFont?.path === path) return pickedSoundFont.bytes;
+  const saved = await store.get('soundFontFile');
+  if (!saved?.handle) throw new Error('the chosen soundfont is no longer known: press … and choose it again');
+  let permission = 'prompt';
+  try { permission = await saved.handle.queryPermission({ mode: 'read' }); } catch { /* treated as not granted */ }
+  if (permission !== 'granted') throw new Error('access to the soundfont lapsed when LUNA restarted: press … and choose it again');
+  return new Uint8Array(await (await saved.handle.getFile()).arrayBuffer());
+}
+
 async function readSoundFont() {
   const path = sf2Path();
+  if (path?.startsWith(PICKED_SF)) return readPickedSoundFont(path);
   if (path) return reader.read(path);
   const r = await fetch(BUNDLED_SF2.url);
   if (!r.ok) throw new Error(`${BUNDLED_SF2.url}: ${r.status}`);
@@ -7834,7 +7852,7 @@ function loadSoundFont() {
     const version = sfLoadVersion;
     const bankId = soundFontId();
     const name = sf2Name();
-    const where = sf2Path() || 'shipped with the add-on';
+    const where = !sf2Path() ? 'shipped with the add-on' : sf2Path().startsWith(PICKED_SF) ? 'the file you chose' : sf2Path();
     showSoundFont(`loading ${name}…`);
     try {
       player.ensureContext();
@@ -7915,9 +7933,32 @@ async function applySound() {
 }
 
 async function chooseSoundFont() {
-  if (!luna || !(await luna.gui.available())) throw new Error('LUNA is not connected.');
-  const [path] = await luna.gui.chooseFiles({ title: 'Choose a soundfont (.sf2, .sf3 or .dls)', filters: ['*.sf2;*.sf3;*.dls'], ...(sf2Path() ? { defaultPath: sf2Path() } : {}) });
-  if (!path) return;
+  let path;
+  if (typeof globalThis.showOpenFilePicker === 'function') {
+    // The browser's picker: the page gets the file itself, wherever it is.
+    const saved = await store.get('soundFontFile').catch(() => null);
+    let handle;
+    try {
+      [handle] = await globalThis.showOpenFilePicker({
+        types: [{ description: 'SoundFont (.sf2, .sf3, .dls)', accept: { 'application/octet-stream': ['.sf2', '.sf3', '.dls'] } }],
+        excludeAcceptAllOption: false,
+        ...(saved?.handle ? { startIn: saved.handle } : {}),
+      });
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      throw e;
+    }
+    const file = await handle.getFile();
+    if (!/\.(sf2|sf3|dls)$/i.test(file.name)) throw new Error(`${file.name} is not a soundfont (.sf2, .sf3 or .dls).`);
+    path = `${PICKED_SF}${file.name}`;
+    pickedSoundFont = { path, bytes: new Uint8Array(await file.arrayBuffer()) };
+    try { await store.set('soundFontFile', { name: file.name, handle }); } catch { /* chosen for this run only */ }
+  } else {
+    if (!luna || !(await luna.gui.available())) throw new Error('LUNA is not connected.');
+    const sfPath = sf2Path();
+    [path] = await luna.gui.chooseFiles({ title: 'Choose a soundfont (.sf2, .sf3 or .dls)', filters: ['*.sf2;*.sf3;*.dls'], ...(sfPath && !sfPath.startsWith(PICKED_SF) ? { defaultPath: sfPath } : {}) });
+    if (!path) return;
+  }
   prefs.set('sf2Path', path);
   sfLoadVersion++;
   sfLoading = null;
