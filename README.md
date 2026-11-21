@@ -1,6 +1,6 @@
 # MIDI Digger
 
-Copyright (c) 2026 elper.es (Pablo Ortiz). All rights reserved. This repository is private and
+_Copyright (c) 2026 elper.es (Pablo Ortiz). All rights reserved. This repository is private and
 shared with Universal Audio only so it can review the add-on. It is not open source: see
 `LICENSE.txt`. Third-party components keep their own licences (`THIRD-PARTY-NOTICES.txt`).
 
