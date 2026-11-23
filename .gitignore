@@ -1,0 +1,3 @@
+# Public repository: documentation and releases only. The source lives in a private repository.
+*.lunaaddon
+!release/MIDI-Digger.lunaaddon

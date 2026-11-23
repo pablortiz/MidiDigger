@@ -1,0 +1,47 @@
+MIDI Digger 1.0.1 — End-user licence
+Copyright (c) 2026 elper.es (Pablo Ortiz). All rights reserved.
+
+MIDI Digger is licensed, not sold. By installing or using it you agree to the following.
+
+1. Free use. You may install MIDI Digger and use its free features (Files, Parts, Favorites
+   and sending parts to LUNA) on your own computers, for private or commercial music work,
+   for as long as you like.
+
+2. Loops: trial and licence. The loop features (New loop, Fill, Arrange, Summary and the
+   features that work on a loop) may be tried free for 7 days from the first time MIDI Digger
+   runs on a computer. After that they need a licence key, bought on Gumroad (elper.es). Each
+   licence bought may be used on up to 3 computers of its owner; buying several licences at
+   once gives one key for 3 computers per licence. A key is for you (or, with several licences,
+   your studio or school): you may not share, sell or publish it. MIDI Digger shows the buyer's
+   email address once a key is activated. A refunded purchase's key stops working. Updates of
+   the same major version (1.x) are included; a later major version may need an upgrade.
+
+3. Your music is yours. MIDI Digger does not claim any rights over the MIDI files you open
+   with it or over the music you make with it.
+
+4. You may not redistribute MIDI Digger or any part of it, sell it, or publish it elsewhere.
+   Share the official download link instead.
+
+5. You may not copy, modify, adapt or reuse its code, its user interface or its analysis
+   methods, in whole or in part, in other software, nor decompile, reverse-engineer it or
+   work around its licence check, except as the law expressly allows.
+
+6. Third-party components included in this package (the LUNA Builder SDK runtime,
+   spessasynth_core, stb-vorbis and the GeneralUser GS soundfont) remain under their own
+   licences, listed in THIRD-PARTY-NOTICES.txt. This licence does not restrict your rights
+   under those licences for those components.
+
+7. To check a licence key bought on Gumroad, MIDI Digger sends the key (and which product it
+   is for) to Gumroad when it is entered and then about once a week; once activated it also
+   works without a connection. It sends nothing about you, your music, your files or your
+   sessions anywhere.
+
+8. MIDI Digger is provided "as is", without warranty of any kind, to the extent the law
+   allows. Keep a copy of your sessions. To the extent the law allows, elper.es is not liable
+   for any loss or damage arising from its use. Nothing in this licence limits rights that
+   consumers have by law.
+
+9. MIDI Digger is not made, tested or endorsed by Universal Audio, Inc. LUNA is a product of
+   Universal Audio, Inc.
+
+Contact and the current version: elper.es
