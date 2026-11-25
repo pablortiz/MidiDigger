@@ -13,7 +13,8 @@ your LUNA session as MIDI tracks or rendered audio.
 
 - **Dig your library.** Point it at a folder of `.mid` files. Every channel of every file
   becomes a part (drums, bass, chords or melody) with its key, tempo and meter, cut into
-  loops and phrases you can search and play.
+  loops and phrases you can search and play. A big library can be analysed in batches: a
+  range of its folders at a time.
 - **Find what fits.** Every fragment is scored against what is playing, note against note and
   hit against hit, and shown green, amber or red.
 - **Build loops fast.** Drop parts on the pads, or press **✨ Fill**: it proposes the
@@ -21,6 +22,12 @@ your LUNA session as MIDI tracks or rendered audio.
   breakdowns and more.
 - **Audition alternatives.** **▶▶** plays each instrument's best proposals one after another,
   in time with the loop; keep the one you like.
+- **Keep it moving.** **⟳ Rotate** changes the loop while it plays, one instrument at a time:
+  on each bar, the instrument whose turn it is gets a new part in the next 4 bars, chosen to fit
+  the others as they sound now. Turn it on and off as you play to choose which ones change.
+  Locked instruments stay as they are.
+- **Follow a song.** **📍 Locate** shows the song, track and bars a pad comes from;
+  **⇥ Continue** fills the rest of the loop with the bars that follow in that song.
 - **Fit to your session.** **🎯 Fit to session** reads the MIDI and audio tracks of your LUNA
   session and ranks fragments by how well they go with them.
 - **Send to LUNA.** As MIDI on new tracks, or as audio rendered with the built-in General MIDI
@@ -35,7 +42,7 @@ your LUNA session as MIDI tracks or rendered audio.
 | | |
 |---|---|
 | **Free, always** | Browse and analyse your library, search parts, preview, favourites, send parts to LUNA |
-| **7-day trial, then a licence** | The loops: New loop, Fill, Arrange, Summary, playlists, Fit to session over a loop |
+| **7-day trial, then a licence** | The loops: New loop, Fill, Rotate, Arrange, Summary, playlists, Locate and Continue, Fit to session over a loop |
 
 **[Buy a licence on Gumroad](https://pablotab2.gumroad.com/l/gufosk)**: one licence works on up to 3 of
 your computers. Updates of version 1 are included. MIDI Digger ships **no MIDI files**: it
@@ -46,7 +53,8 @@ works with your own library.
 1. Download `MIDI-Digger.lunaaddon` from the [latest release](https://github.com/pablortiz/MidiDigger/releases/latest)
    (or get it from LUNA's Discover).
 2. Double-click it, then open LUNA → **Add Ons → MIDI Digger**.
-3. Choose your MIDI folder and press **Analyse**.
+3. Choose your MIDI folder and press **Analyse**: the whole library, or a range of its folders
+   (from one folder to another, from a given file, so many files at most).
 
 Requires LUNA 3.1.1 or later (tested on Windows). The licence key is checked with Gumroad
 once when you enter it; after that MIDI Digger works offline. Nothing about your music or
@@ -72,7 +80,11 @@ your files leaves your computer.
 **Saving the analysis.** *Data → Save analysis* stores every fragment with its role, length,
 tempo, key, and the note and hit summaries the fit measures are worked out from. Ticking
 *Include MIDI events* also stores each fragment's notes, volume, pan, sustain, pitch bend and
-tempo. *Restore* brings a saved analysis back without analysing again.
+tempo. *Restore* brings a saved analysis back without analysing again, adding its files to
+those already analysed. *Clear analysis* forgets it all (the list of files, favourites and
+loops stay), so a library can be kept as several saved analyses, one per range of folders, and
+switched between with *Clear analysis* and *Restore*. In *Files*, **Analysed** shows only the
+files already analysed.
 
 ### 2. How a fragment is scored against the music
 

@@ -1,6 +1,6 @@
 # MIDI Digger — ready to install
 
-`MIDI-Digger.lunaaddon` is the current version, built from this repository (`npm run pack`).
+`MIDI-Digger.lunaaddon` is the current version (1.2.1).
 Download it, double-click it, and open LUNA → **Add Ons → MIDI Digger**.
 
 The same file is attached to each [GitHub release](https://github.com/pablortiz/MidiDigger/releases/latest),
