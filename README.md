@@ -1,39 +1,39 @@
 # MIDI Digger
 
-**Turn your own MIDI library into loops, inside LUNA.**
+**Turn the MIDI files you already have into loops that fit — in minutes, inside LUNA.**
 
-MIDI Digger reads the MIDI files you already have, cuts every instrument into musical
-fragments, and finds the ones that fit what you are playing: same harmony, same groove.
-Build a loop in minutes, audition alternatives instrument by instrument, and send it to
-your LUNA session as MIDI tracks or rendered audio.
+Free to browse your library, search parts and send them to LUNA. The loop tools come with a
+**7-day free trial**, then a one-time licence: **[Buy a licence](https://pablotab2.gumroad.com/l/gufosk?utm_source=readme&utm_medium=github)**.
 
 ![MIDI Digger: a loop built from fragments of different songs](https://raw.githubusercontent.com/pablortiz/MidiDigger/main/docs/images/loop.png)
 
-## What it does
+## Why MIDI Digger
 
-- **Dig your library.** Point it at a folder of `.mid` files. Every channel of every file
-  becomes a part (drums, bass, chords or melody) with its key, tempo and meter, cut into
-  loops and phrases you can search and play. A big library can be analysed in batches: a
-  range of its folders at a time.
-- **Find what fits.** Every fragment is scored against what is playing, note against note and
-  hit against hit, and shown green, amber or red.
-- **Build loops fast.** Drop parts on the pads, or press **✨ Fill**: it proposes the
-  instruments and fragments that fit your loop best. **Arrange** lays out build-ups,
-  breakdowns and more.
-- **Audition alternatives.** **▶▶** plays each instrument's best proposals one after another,
-  in time with the loop; keep the one you like.
-- **Keep it moving.** **⟳ Rotate** changes the loop while it plays, one instrument at a time:
-  on each bar, the instrument whose turn it is gets a new part in the next 4 bars, chosen to fit
-  the others as they sound now. Turn it on and off as you play to choose which ones change.
-  Locked instruments stay as they are.
-- **Follow a song.** **📍 Locate** shows the song, track and bars a pad comes from;
-  **⇥ Continue** fills the rest of the loop with the bars that follow in that song.
-- **Fit to your session.** **🎯 Fit to session** reads the MIDI and audio tracks of your LUNA
-  session and ranks fragments by how well they go with them.
-- **Send to LUNA.** As MIDI on new tracks, or as audio rendered with the built-in General MIDI
-  soundfont. Export MIDI files too.
+- **✨ Fill finds the part that fits.** Select some pads and press Fill: it searches your
+  whole library for the drums, bass, chords or melody that go with what is playing — same
+  harmony, same groove — puts the best one in, in your key, and lists the alternatives.
+- **⟳ Rotate keeps the loop alive.** While the loop plays, one instrument at a time gets a new
+  part that fits the others. Switch it on and off as you play to choose what changes.
+- **Your music, not stock samples.** It works with your own MIDI collection: thousands of
+  real songs become a palette of parts you can search, hear and combine.
 
 ![Parts: fragments of your library ranked by how well they fit](https://raw.githubusercontent.com/pablortiz/MidiDigger/main/docs/images/parts.png)
+
+## Also
+
+- **Find what fits.** Every fragment is scored against what is playing and shown green,
+  amber or red.
+- **Audition alternatives.** **▶▶** plays each instrument's best proposals one after another,
+  in time with the loop; keep the one you like.
+- **Fill several zones at once.** Ctrl + click pads anywhere in the loop: Fill completes them
+  one after another, the base first.
+- **Copy between loops.** Copy zones of one loop and paste them into another, in the same bars;
+  drag them to move them.
+- **Arrange** lays out build-ups, breakdowns and more.
+- **Follow a song.** **📍 Locate** shows where a pad comes from; **⇥ Continue** fills the
+  rest of the loop with the bars that follow in that song.
+- **🎯 Fit to session** ranks your library against the tracks of your LUNA session.
+- **Send to LUNA** as MIDI tracks or as rendered audio; export MIDI files too.
 
 ![Fill results: the instruments that fit the loop, and their best fragments](https://raw.githubusercontent.com/pablortiz/MidiDigger/main/docs/images/fill.png)
 
@@ -42,93 +42,39 @@ your LUNA session as MIDI tracks or rendered audio.
 | | |
 |---|---|
 | **Free, always** | Browse and analyse your library, search parts, preview, favourites, send parts to LUNA |
-| **7-day trial, then a licence** | The loops: New loop, Fill, Rotate, Arrange, Summary, playlists, Locate and Continue, Fit to session over a loop |
+| **7-day free trial, then a licence** | The loops: New loop, Fill, Rotate, Arrange, Summary, playlists, Locate and Continue, Fit to session over a loop |
 
-**[Buy a licence on Gumroad](https://pablotab2.gumroad.com/l/gufosk)**: one licence works on up to 3 of
-your computers. Updates of version 1 are included. MIDI Digger ships **no MIDI files**: it
-works with your own library.
+**[Buy a licence on Gumroad](https://pablotab2.gumroad.com/l/gufosk?utm_source=readme&utm_medium=github)** — one-time payment, works
+on up to 3 of your computers, updates of version 1 included. MIDI Digger ships **no MIDI
+files**: it works with your own library.
 
 ## Install
 
-1. Download `MIDI-Digger.lunaaddon` from the [latest release](https://github.com/pablortiz/MidiDigger/releases/latest)
-   (or get it from LUNA's Discover).
-2. Double-click it, then open LUNA → **Add Ons → MIDI Digger**.
-3. Choose your MIDI folder and press **Analyse**: the whole library, or a range of its folders
-   (from one folder to another, from a given file, so many files at most).
+1. Install it from LUNA's **Discover**, or download `MIDI-Digger.lunaaddon` from the
+   [latest release](https://github.com/pablortiz/MidiDigger/releases/latest) and double-click it.
+2. Open LUNA → **Add Ons → MIDI Digger**.
+3. Choose your MIDI folder and press **Analyse** (all of it, or a range of its folders).
 
-Requires LUNA 3.1.1 or later (tested on Windows). The licence key is checked with Gumroad
-once when you enter it; after that MIDI Digger works offline. Nothing about your music or
-your files leaves your computer.
+Requires LUNA 3.1.1 or later (tested on Windows).
 
-## How it works
+**What goes online.** The licence key is checked with Gumroad when you enter it, and again
+about once a week when there is a connection; without one, MIDI Digger keeps working. Once a
+day it also asks GitHub whether there is a new version and elper.es whether there is an offer.
+Nothing about your music, your files or you is sent.
 
-### 1. Analysing files and extracting fragments
+**How does it decide what fits?** The measures, the weights learned from 3,000 songs and how
+Fill chooses: [How MIDI Digger works](https://github.com/pablortiz/MidiDigger/blob/main/docs/how-it-works.md).
 
-**Per file**
-- Split by MIDI channel. Each channel becomes a part with a role: drums (channel 10), bass,
-  chords or melody.
-- Key: the key signature written in the file; when there is none (or it is the default
-  C major), Krumhansl-Kessler correlation over the 24 keys.
-- Tempo and meter from the file, any meter: bars follow the file's time-signature changes.
+## Support
 
-**Fragments**
-- Each part is cut at its silences: every group of notes between rests is a candidate fragment.
-- Loops are found with a bar-by-bar self-similarity matrix (every bar compared with every
-  other). Repeated bars collapse into one loop with a repeat count.
-- Duplicates within a part count once. Fragments of 1 to 16 bars are kept.
-
-**Saving the analysis.** *Data → Save analysis* stores every fragment with its role, length,
-tempo, key, and the note and hit summaries the fit measures are worked out from. Ticking
-*Include MIDI events* also stores each fragment's notes, volume, pan, sustain, pitch bend and
-tempo. *Restore* brings a saved analysis back without analysing again, adding its files to
-those already analysed. *Clear analysis* forgets it all (the list of files, favourites and
-loops stay), so a library can be kept as several saved analyses, one per range of folders, and
-switched between with *Clear analysis* and *Restore*. In *Files*, **Analysed** shows only the
-files already analysed.
-
-### 2. How a fragment is scored against the music
-
-Each candidate is compared with what is playing on 9 measures, each multiplied by its weight,
-plus a fixed value. The result goes through a logistic function: a 0 to 1 chance that the
-fragment was written for that music. Weights for bass, chords and melody; drums use rhythm only.
-
-| Measure | What it measures | Weight | Drums |
-|---|---|---:|---:|
-| clash | semitone clashes (up or down) when both sound | −3.52 | – |
-| chroma | same pitch classes, bar by bar | +4.52 | – |
-| harmonyCover | fragment notes on the context's notes | +0.15 | – |
-| hit | fragment hits landing with the context's (±1) | +0.08 | +0.72 |
-| cover | context hits the fragment also plays | +0.06 | +1.04 |
-| beat | same split of the beat (straight / swing / triplets) | +2.88 | +3.69 |
-| accent | same places of the bar struck | −1.09 | −1.79 |
-| bar | moving together, bar by bar | +2.45 | +1.82 |
-| density | how many more hits per bar (in octaves) | +0.23 | +0.14 |
-| fixed value | | −4.32 | −3.90 |
-
-The weights were learned by logistic regression from 3,000 songs: real combinations (parts
-that were written together) against random ones. On songs it had not seen, it tells them
-apart with an AUC of 0.86 for parts with notes and 0.73 for drums.
-
-### 3. How Fill chooses
-
-Each candidate gets five sub-scores from 0 to 1, combined with fixed weights:
-
-**Fill % = 45 % Fit + 25 % Length + 15 % Dynamics + 5 % Activity + 10 % Role**
-
-| Part | Weight | What it measures |
-|---|---:|---|
-| Fit | 45 % | the 9 measures above: notes and rhythm against what the loop plays |
-| Length | 25 % | how much of the target bars the fragment fills |
-| Dynamics | 15 % | how close its note velocities are to the loop's |
-| Activity | 5 % | how close its note density is to the loop's |
-| Role | 10 % | how often this instrument goes with the loop's instruments, learned from your analysed songs |
-
-The best-scoring fragments of each instrument become its playlist (▶▶), so you can hear the
-alternatives in turn and keep the one you like.
+Something not working, a problem with your licence key, or a question? Write to
+**[pot@elper.es](mailto:pot@elper.es?subject=MIDI%20Digger)**. Say which version you have (it is in
+the title bar of MIDI Digger's window) and what you were doing.
 
 ## Licence
 
-© 2026 elper.es (Pablo Ortiz). All rights reserved. See [LICENSE.txt](LICENSE.txt) and
-[THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt). MIDI Digger is not made, tested or endorsed
-by Universal Audio, Inc. MIDI Digger is closed source: this repository holds its documentation
-and releases.
+© 2026 elper.es (Pablo Ortiz). All rights reserved. See
+[LICENSE.txt](https://github.com/pablortiz/MidiDigger/blob/main/LICENSE.txt) and
+[THIRD-PARTY-NOTICES.txt](https://github.com/pablortiz/MidiDigger/blob/main/THIRD-PARTY-NOTICES.txt).
+MIDI Digger is not made, tested or endorsed by Universal Audio, Inc. MIDI Digger is closed
+source: this repository holds its documentation and releases.

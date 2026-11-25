@@ -2,7 +2,7 @@
     "package_name": "MIDI Digger",
     "id": "es.elper.mididigger",
     "title": "MIDI Digger",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "manufacturer": "elper.es",
     "sdk_version": "0.1.1.22",
     "min_luna_version": "3.1.1",
