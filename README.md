@@ -60,7 +60,13 @@ Requires LUNA 3.1.1 or later (tested on Windows).
 **What goes online.** The licence key is checked with Gumroad when you enter it, and again
 about once a week when there is a connection; without one, MIDI Digger keeps working. Once a
 day it also asks GitHub whether there is a new version and elper.es whether there is an offer.
-Nothing about your music, your files or you is sent.
+Nothing about your music, your files or you is sent. Since LUNA 3.1.2, LUNA asks you to allow
+these three servers (api.gumroad.com, api.github.com, elper.es) when you install MIDI Digger;
+you can change it in **Settings → Add Ons → Servers**. Allow api.gumroad.com to activate a licence.
+
+**Updating.** Since LUNA 3.1.2 an update starts the add-on with a clean slate, but MIDI Digger
+keeps your licence, trial and library folder in LUNA's preferences, so you don't need to enter
+your key again.
 
 **How does it decide what fits?** The measures, the weights learned from 3,000 songs and how
 Fill chooses: [How MIDI Digger works](https://github.com/pablortiz/MidiDigger/blob/main/docs/how-it-works.md).
