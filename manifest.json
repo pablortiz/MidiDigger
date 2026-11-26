@@ -2,7 +2,7 @@
     "package_name": "MIDI Digger",
     "id": "es.elper.mididigger",
     "title": "MIDI Digger",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "manufacturer": "elper.es",
     "description": "Turn your MIDI library into loops: find the parts that fit what is playing, build loops and take them to LUNA.",
     "categories": ["MIDI", "Create"],
